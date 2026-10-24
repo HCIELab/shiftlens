@@ -1,0 +1,222 @@
+{
+  "source": "6_together/widgets.3dm",
+  "units": "mm",
+  "method": "Exact planar face bounds; profiles verified from connected neighboring Brep faces. Each open boundary is one root-midpoint to next root-midpoint cell. Repeat cells by their Y period. The profile is the tooth boundary; close with chosen native carrier backing, not a new tooth design.",
+  "roller59": {
+    "sourceFaces": [
+      28,
+      29,
+      30,
+      31,
+      32
+    ],
+    "coordinateOrder": [
+      "Y",
+      "Z"
+    ],
+    "profileSource": [
+      [
+        15.686187944196675,
+        -2.389040023826247
+      ],
+      [
+        15.84537741888412,
+        -2.389040023826247
+      ],
+      [
+        16.120348422890146,
+        -1.63356339931488
+      ],
+      [
+        16.438727372265042,
+        -1.63356339931488
+      ],
+      [
+        16.713698376271076,
+        -2.389040023826247
+      ],
+      [
+        16.87288785095852,
+        -2.389040023826247
+      ]
+    ],
+    "periodY": 1.1866999067618451,
+    "sourceCellCenterY": 16.279537897577594,
+    "sourcePitchPlaneZ": -2.011301711570558,
+    "profileLocalCenteredOnToothAndPitchPlane": [
+      [
+        -0.593349953380919,
+        -0.37773831225568877
+      ],
+      [
+        -0.4341604786934745,
+        -0.37773831225568877
+      ],
+      [
+        -0.15918947468744804,
+        0.3777383122556781
+      ],
+      [
+        0.15918947468744804,
+        0.3777383122556781
+      ],
+      [
+        0.4341604786934816,
+        -0.37773831225568877
+      ],
+      [
+        0.5933499533809261,
+        -0.37773831225568877
+      ]
+    ],
+    "extrusionAxis": "X",
+    "extrusionBounds": [
+      1.8902062682572573,
+      8.236680078891863
+    ],
+    "solidSide": "Below profile, toward negative Z. Carrier59 external base has bottomZ\u22126 and topZ0.",
+    "nominalModule": 0.37773831225567794,
+    "nominalPitchRadius": 2.8330373419175845,
+    "pressureAngle_deg": 19.99999999999896,
+    "rackProfileCorrectionKeepRotorFixed": [
+      0,
+      0,
+      0.7390807253805298
+    ],
+    "correctedPitchPlaneZ": -1.2722209861900133,
+    "alternativeWholeRotorCorrectionKeepRackFixed": [
+      0,
+      0,
+      -0.7390807253805298
+    ],
+    "alternativeWarning": "Whole-rotor lowering makes shaft72 bottomZ\u2248\u22120.40124, penetrating unmodified carrier59 outside the central pocket. Prefer modifying the native rack tooth floor only, keeping outer carrier top0.",
+    "sourceRotorTipCenterAngles_deg_aboutPlusX_fromPlusY": [
+      -160.74093989765007,
+      -136.74093989765072,
+      -112.74093989765109,
+      -88.74093989765123
+    ],
+    "sourcePhaseEvidence": "Bottom tooth center is approximately \u221288.74094\u00b0 from +Y toward +Z. Native bottom tooth and rack root gap are already nearly aligned in Y; preserve initial phase before testing repaired mesh."
+  },
+  "knob88": {
+    "sourceFaces": [
+      19,
+      20,
+      21,
+      22,
+      23
+    ],
+    "coordinateOrder": [
+      "X",
+      "Y"
+    ],
+    "profileSource": [
+      [
+        11.282893949800714,
+        11.210679557953535
+      ],
+      [
+        11.282893949800714,
+        11.389877765749485
+      ],
+      [
+        8.982893949800713,
+        12.462385379505982
+      ],
+      [
+        8.982893949800713,
+        13.100566389990881
+      ],
+      [
+        11.282893949800714,
+        14.173074003747377
+      ],
+      [
+        11.282893949800714,
+        14.352272211543328
+      ]
+    ],
+    "periodY": 3.141592653589793,
+    "sourceCellCenterY": 12.781475884748431,
+    "sourcePitchPlaneX": 9.982893949800713,
+    "profileLocalCenteredOnPitchPlaneAndTooth": [
+      [
+        1.3000000000000007,
+        -1.5707963267948966
+      ],
+      [
+        1.3000000000000007,
+        -1.391598118998946
+      ],
+      [
+        -1.0,
+        -0.31909050524244975
+      ],
+      [
+        -1.0,
+        0.31909050524244975
+      ],
+      [
+        1.3000000000000007,
+        1.391598118998946
+      ],
+      [
+        1.3000000000000007,
+        1.5707963267948966
+      ]
+    ],
+    "extrusionAxis": "Z",
+    "extrusionBounds": [
+      -3.0048559221615094,
+      -0.03842561152262569
+    ],
+    "solidSide": "To right of profile, toward positive X.",
+    "nominalModule": 1,
+    "nominalPitchRadius": 3,
+    "pressureAngle_deg": 24.999999999999982,
+    "rackProfileCorrectionKeepRotorFixed": [
+      -1,
+      0,
+      0
+    ],
+    "correctedPitchPlaneX": 8.98289394980076,
+    "alternativeWholeRotorCorrectionKeepRackFixed": [
+      1,
+      0,
+      0
+    ],
+    "sourcePhaseEvidence": "The +X gear gap lies approximately atY12.7814759, aligned with the central rack tooth centerY12.7814759. Native pinion tip directions are near +30\u00b0,\u221230\u00b0,\u221290\u00b0,\u2212150\u00b0,150\u00b0,90\u00b0 from +X.",
+    "seamRepair": "Repeat this clean pi-periodic cell; do not repeat the full authored rack, whose two seams omit0.358396415591901mm of root flat."
+  },
+  "knobOppositePocketWall": {
+    "sourcePart": 88,
+    "sourceFace": 10,
+    "type": "Single planar wall; no detent notches or teeth on this source face.",
+    "planeX": 1.852372095613477,
+    "spanY": [
+      5.398201813286001,
+      26.38104820251465
+    ],
+    "spanZ": [
+      -2.7351804393761565,
+      0.273518043937615
+    ],
+    "pinionAxisX": 5.98289394980076,
+    "pinionMaximumTipRadius": 4,
+    "conservativeRadialClearance": 0.13052185418728257,
+    "floorZ": -2.7351804393761565,
+    "pinionMinimumZ": -2.3659873598429617,
+    "floorClearance": 0.3691930795331948,
+    "smoothModeAssessment": "The flat opposite wall can be preserved during rotation, since its clearance from the complete4mm rotational envelope is approximately0.1305mm. If rack profile alone shifts\u22121X, this wall and that clearance remain unchanged. This is an envelope check, not full mesh collision validation.",
+    "detentAssessment": "No positive detent teeth or spring can be identified in the opposite wall from these native parts. Preserve this wall in smooth mode; do not invent detents based solely on the paper state count.",
+    "lateralTravelEnvelopeY": [
+      9.398201813286,
+      22.38104820251465
+    ],
+    "relativeToOriginalAxisY": [
+      -3.383246532414427,
+      9.599599856814221
+    ],
+    "lateralTravelWarning": "These Y bounds are wall-envelope bounds only. Lens attachment, rack length after repeat, shaft passage and full hardware collisions still limit usable stroke."
+  }
+}

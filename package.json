@@ -1,0 +1,34 @@
+{
+  "name": "shiftlens-studio",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "vite build",
+    "test": "node --test tests/*.test.mjs",
+    "preview": "vite preview --host 127.0.0.1"
+  },
+  "dependencies": {
+    "three": "0.180.0",
+    "manifold-3d": "3.2.1",
+    "fflate": "0.8.2"
+  },
+  "devDependencies": {
+    "vite": "7.1.12"
+  },
+  "packageManager": "pnpm@11.25.0",
+  "description": "Browser-based ShiftLens surface, mechanism, image and fabrication design tool",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/HCIELab/shiftlens.git"
+  },
+  "homepage": "https://hcie.csail.mit.edu/research/shiftlens/shiftlens.html",
+  "bugs": {
+    "url": "https://github.com/HCIELab/shiftlens/issues"
+  },
+  "engines": {
+    "node": ">=22.13.0"
+  }
+}

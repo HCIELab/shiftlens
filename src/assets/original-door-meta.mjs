@@ -1,0 +1,2 @@
+// Derived from the original CAD export.
+export default {"source":"17_Yunyi_video-tuned/ShiftLens.3dm","sourceSha256":"d7307b142b3677058ffa4ddf061b4950d82791d078531e69045fbdd11a743115","units":"mm","sourceRotationDeg":-89.14257668234576,"sourceZOffset":-0.2,"innerRadius":88.43982287987407,"outerRadius":176.879658475845,"sweepDeg":40,"count":20,"substrate":0.42,"baseThickness":5,"clearance":1,"railThickness":3};

@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Define a ShiftLens surface, assign actuation and images, then simulate and export.">
+  <title>ShiftLens Design Tool</title>
+</head>
+<body>
+  <header>
+    <strong>ShiftLens Design Tool</strong>
+    <div class="file-actions">
+      <button id="new-design">New design</button>
+      <label class="example-label"><span class="sr-only">Load example</span><select id="examples" aria-label="Load example"><option value="">Examples…</option><option value="door">Door sign</option><option value="ribbon">Curved translation</option><option value="vessel">Revolved vessel</option><option value="screw">Screw surface</option></select></label>
+      <button id="open-project">Open</button>
+      <button id="save-project">Save</button>
+      <button id="undo" title="Undo (Ctrl/Cmd+Z)" aria-label="Undo"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-15.5-6.4L3 13"/></svg></button>
+      <button id="redo" title="Redo (Ctrl/Cmd+Shift+Z)" aria-label="Redo"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 7v6h-6"/><path d="M3 17a9 9 0 0 1 15.5-6.4L21 13"/></svg></button>
+    </div>
+  </header>
+  <div class="workspace">
+    <aside class="workflow" aria-label="Design workflow">
+      <div class="project-line"><span id="design-name">Untitled design</span><span id="save-status"></span></div>
+      <div id="panel"></div>
+    </aside>
+    <main>
+      <div class="stage-toolbar">
+        <span id="model-name">New design</span>
+        <div class="view-switch" aria-label="Viewport display">
+          <button id="view-assembly" class="active">Geometry</button>
+          <button id="view-appearance">Image preview</button>
+          <button id="view-pattern">Encoded image</button>
+        </div>
+      </div>
+      <div id="viewport">
+        <div id="canvas-host"></div>
+        <div id="empty-design"><p>Choose a surface type in Step 1,<br>then define the primary curve.</p></div>
+        <div class="viewport-tools"><button id="fit">Fit</button><button id="top">Top</button><button id="explode">Explode</button></div>
+        <div id="place-tip" role="status" aria-label="Mechanism placement feedback" hidden></div>
+        <div class="axis-hint">Drag to orbit · Scroll to zoom</div>
+        <div id="pattern-panel" hidden><canvas id="pattern-canvas"></canvas><p>Encoded image used by the preview.</p><button id="download-pattern">Download encoded PNG</button><button id="print-pattern">Download paper insert</button></div>
+      </div>
+      <div id="status-text" role="status">New design — select a surface type.</div>
+      <section class="transport" aria-label="Simulation controls">
+        <div class="transport-top"><button id="play" aria-label="Start simulation">Start</button><strong id="phase-label">State 1</strong><span id="travel-label"></span><label class="speed-label">Speed <select id="speed"><option value="0.12">Slow</option><option value="0.25" selected>Normal</option><option value="0.5">Fast</option></select></label></div>
+        <div class="timeline"><button class="state-end" id="state-a" aria-label="Preview state 1"><img id="thumb-a" alt="State 1" hidden><span>1</span></button><input id="phase" type="range" min="0" max="1" step="0.001" value="0" aria-label="Actuation phase"><button class="state-end" id="state-b" aria-label="Preview state 2"><img id="thumb-b" alt="State 2" hidden><span>2</span></button></div>
+      </section>
+    </main>
+  </div>
+  <dialog id="curve-dialog" class="curve-dialog"></dialog>
+  <dialog id="axis-dialog" class="axis-dialog"></dialog>
+  <input id="project-file" type="file" accept=".json" hidden>
+  <div id="toast" role="status" hidden></div>
+  <script type="module" src="/src/main.mjs"></script>
+</body>
+</html>

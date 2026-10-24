@@ -1,0 +1,38 @@
+cff-version: 1.2.0
+message: "If you use ShiftLens in research, please cite the paper below."
+title: "ShiftLens Web Design Tool"
+type: software
+license: MIT
+repository-code: "https://github.com/HCIELab/shiftlens"
+url: "https://hcie.csail.mit.edu/research/shiftlens/shiftlens.html"
+authors:
+  - family-names: Zhu
+    given-names: Yunyi
+  - family-names: Cao
+    given-names: Dingning
+  - family-names: Mrzyglocki
+    given-names: Jeremy
+  - family-names: Mueller
+    given-names: Stefanie
+  - family-names: Pourjafarian
+    given-names: Narjes
+preferred-citation:
+  type: conference-paper
+  title: "ShiftLens: Mechanically Actuated Optical Surfaces for Switchable Appearances on 3D Objects"
+  authors:
+    - family-names: Zhu
+      given-names: Yunyi
+    - family-names: Cao
+      given-names: Dingning
+    - family-names: Mrzyglocki
+      given-names: Jeremy
+    - family-names: Mueller
+      given-names: Stefanie
+    - family-names: Pourjafarian
+      given-names: Narjes
+  year: 2026
+  collection-title: "Proceedings of the 39th Annual ACM Symposium on User Interface Software and Technology"
+  publisher:
+    name: "Association for Computing Machinery"
+  doi: "10.1145/3830398.3830555"
+  url: "https://hcie.csail.mit.edu/research/shiftlens/2026-shiftlens-paper.pdf"
