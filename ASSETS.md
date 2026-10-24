@@ -34,3 +34,7 @@ The exported mesh snapshots and their parameter metadata are bundled. They are s
 `src/assets/native-mechanisms.mjs` contains the original moving parts and native rack tooth profiles from `6_together/widgets.3dm` (SHA-256 `71e18ac07ff352292ea694d3f4534074accf5052dc1d5ef1ce8aad87b968caf6`). Object IDs and source indices are retained. See [native mechanism provenance](docs/native-mechanisms.md) for exact rack placement repairs, fitting adjustments and the reproducible normalization script. No substitute switch, knob or roller handle is generated. Generated carrier mounts and clearance openings are separate fitting geometry.
 
 Confirm asset redistribution terms before a public release. The code is licensed MIT; this does not assign a new license to externally supplied artwork or to the paper.
+
+## Optical evaluation source
+
+The browser evaluation is ported from the user-supplied `10_Evaluation/2_optimization/optimize_lens.py` and `10_Evaluation/4_curved-surface/compute_opv.py`. Exact extracted NumPy computational definitions are retained in `docs/evaluation/reference_definitions.py` for independent parity checks. Original full-file SHA256 identities are recorded in `tests/fixtures/optics-python.json` and exported reports. The private source folder, plotting scripts, correspondence, rendering caches and rendered images are not runtime dependencies. See [optics](docs/optics.md) for equations, model limits, stale-cache corrections and fixture regeneration.

@@ -9,10 +9,14 @@ export const originalDoorParameters = Object.freeze({
 });
 
 export function usesOriginalLens(p) {
-  return p.nativeDoor === true && ['innerRadius','outerRadius','sweepDeg','pitch','substrate']
+  return p.nativeDoor === true && !p.opticalProfile && ['innerRadius','outerRadius','sweepDeg','pitch','substrate']
     .every(key => Math.abs(p[key]-originalDoorParameters[key]) < 1e-5);
 }
 export function usesOriginalRails(p) {
   return usesOriginalLens(p) && ['baseThickness','clearance','railThickness','gap']
     .every(key => Math.abs(p[key]-originalDoorParameters[key]) < 1e-5);
+}
+
+export function usesOriginalLayout(p) {
+  return p.nativeDoor === true && ['innerRadius','outerRadius','sweepDeg','pitch'].every(key => Math.abs(p[key]-originalDoorParameters[key]) < 1e-5);
 }

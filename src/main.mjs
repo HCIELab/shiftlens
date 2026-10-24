@@ -1,3 +1,4 @@
+import {OpticsPanel} from './optics-panel.mjs';
 import './style.css';
 import {derive, DEG} from './model.mjs';
 import {SURFACE_PRESETS, validateSurface, frameAt} from './surface.mjs';
@@ -24,6 +25,11 @@ let assembly = null, revision = 0, imageRevision = 0, pending = false, failed = 
 let phase = 0, playing = false, direction = 1, mode = 'assembly', placing = false;
 let encoded = null, timer, toastTimer, refit = true;
 const imageCache = new Map();
+const optics = new OpticsPanel(()=>$('optics-panel'), parameters=>{
+  remember();Object.assign(state.parameters,parameters);
+  renderWorkflow();schedule();
+}, report=>download('shiftlens-optical-evaluation.json',JSON.stringify(report,null,2),'application/json'));
+
 
 try {
   const saved = localStorage.getItem(STORAGE_KEY);
@@ -120,6 +126,7 @@ function syncShape() {
   return true;
 }
 function schedule() {
+  optics.invalidate(designReady(state));
   clearTimeout(timer);
   revision++;
   failed = false;
@@ -167,6 +174,7 @@ worker.onmessage = async ({data}) => {
   if (data.revision !== revision) return;
   if (data.error) { showFailure(data.error); return; }
   assembly = data.assembly;
+  optics.setAssembly(assembly);
   viewer.setAssembly(assembly, refit);
   refit = false;
   await updateImages();
@@ -325,7 +333,8 @@ function renderWorkflow() {
         <div class="control-row"><label for="rails">Add Rail <input id="rails" type="checkbox" ${p.rails ? 'checked' : ''}></label><input type="range" aria-label="Rail thickness" data-target="parameter" data-key="railThickness" data-unit=" mm" min="1.5" max="4" step="0.1" value="${p.railThickness}"><output id="out-railThickness">${p.railThickness} mm</output></div>
         ${range('Surface Thickness', 'baseThickness', 2, 8, 0.25, p.baseThickness, ' mm')}
       </fieldset>
-      <details class="advanced"><summary>Additional lens settings</summary>${range('Substrate Height', 'substrate', 0.4, 3, 0.1, p.substrate, ' mm')}${range('Refractive Index', 'ior', 1.2, 1.8, 0.01, p.ior)}${range('Image Air Gap', 'gap', 0.2, 1, 0.05, p.gap, ' mm')}${range('Sliding Clearance', 'clearance', 0.15, 1, 0.05, p.clearance, ' mm')}</details>
+      <details class="advanced"><summary>Additional lens settings</summary>${range('Substrate Height', 'substrate', 0.4, p.opticalProfile?20:5, 0.1, p.substrate, ' mm')}${p.opticalProfile?range('Lens Radius / Pitch', 'lensRadiusRatio', .5001, 15, .001, p.lensRadiusRatio):''}${range('Refractive Index', 'ior', 1.2, 1.8, 0.01, p.ior)}${range('Image Air Gap', 'gap', 0.2, 1, 0.05, p.gap, ' mm')}${range('Sliding Clearance', 'clearance', 0.15, 1, 0.05, p.clearance, ' mm')}</details>
+      <details id="optics-details" class="advanced" ${optics.open?'open':''}><summary>Optical evaluation and optimization</summary><div id="optics-panel"></div></details>
     </section>
     <section class="step" aria-labelledby="step-2"><h2 id="step-2">Step 2: Actuation Mechanism and Images</h2>
       <label class="group-label" for="mechanism">Select (Optional) Actuation Mechanism</label>
@@ -349,6 +358,8 @@ function renderWorkflow() {
 }
 
 function bindWorkflow() {
+  $('optics-details').ontoggle=e=>{optics.open=e.target.open;};
+  optics.render();
   document.querySelectorAll('[data-surface]').forEach(button => button.onclick = () => {
     remember();
     const type = button.dataset.surface;

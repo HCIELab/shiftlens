@@ -52,6 +52,8 @@ Choose a surface family, then **Define…** the primary curve and motion:
 
 Draw a polyline or smooth curve, edit its XYZ coordinates, or import an XYZ/CSV/JSON point list. Define the axis origin and direction, sweep angle and/or translation distance. Adjust lens width, lens side, retaining rails and carrier thickness.
 
+Open **Optical evaluation and optimization** in this step to evaluate the selected lens section, inspect its visibility curve, search the original 50 × 50 radius/height grid, and optionally apply a fitted circular profile. The fit preserves the image gap and minimum substrate thickness, then regenerates geometry, rails, native mechanism mounts and collision checks. The independent paper-cylinder benchmark and downloadable optical report are in the same panel. See [optical evaluation](docs/optics.md) for the exact model and source identities.
+
 The door sign is one example of this curve-based model. It is not a separate design mode. Compatible shapes must come from one of the three rigid-motion surface families; arbitrary meshes and arbitrary motion paths are not supported.
 
 ### 2. Add actuation and images
@@ -82,7 +84,7 @@ Use **Start** for continuous playback, the timeline for manual scrubbing, or the
 | `project.shiftlens.json` | Editable curves, parameters, mechanisms, images and crop settings |
 | `encoded-pattern.png` | Interleaved image used by the preview |
 | `state-*.*` | Uploaded source images |
-| `verification.json` | Mesh statistics, sampled collisions and CAD/fitting provenance |
+| `verification.json` | Current optical evaluation, mesh statistics, sampled collisions and CAD/fitting provenance |
 | `paper-insert.svg` | Full-size paper layout for the planar radial example, with cut outlines and a 10 mm scale check |
 
 With all state images assigned, these files are downloaded together in a ZIP. Without all images, Export provides the 3MF assembly. Invalid mechanism placements or detected part intersections block export. The encoded PNG is also available from the Encoded image view.
@@ -100,10 +102,11 @@ This is a web reimplementation of the research workflow. The paper and demo vide
 - Curves in 3D, all three compatible motion families, lenses, image carrier and retaining rails.
 - Original-CAD switch, knob and roller, surface-aware placement, fitted geometry and synchronized motion.
 - Multiple uploaded images, interleaving, idealized appearance preview and continuous animation.
+- Original evaluation ray tracer, radius/height grid optimization, local section visibility and the paper cylinder benchmark.
 - Project save/open and mesh, image and planar paper-template export.
 - Automated geometry, mechanism, placement-preview, encoding and export checks.
 
-The web tool **does not yet reproduce the paper's optical optimization and fabrication calibration**. Image preview uses idealized lens-aperture reconstruction, not a calibrated prediction of a fabricated sample. The optional experimental ray trace is available only for planar radial surfaces. More image states in the editor do not establish that a particular lens/printer combination can separate them physically.
+The web tool now ports the supplied evaluation's **corrected weighted ray tracer and optical optimization**. Numerical parity tests compare its results against the original NumPy code. This source model assumes one air-to-lens interface and a homogeneous medium to the image plane; it excludes the mask, exit refraction and material/print effects. **Web-generated outputs have not yet been physically validated.** Image preview continues to use idealized lens-aperture reconstruction, not a calibrated prediction of a fabricated sample. The optional experimental ray trace is available only for planar radial surfaces. More image states in the editor do not establish that a particular lens/printer combination can separate them physically.
 
 Other current limits:
 
@@ -121,10 +124,12 @@ pnpm test
 pnpm build
 ```
 
-The current suite contains 42 tests covering the three mechanisms across surface families, switch-slot reach, rack-driven motion, matching preview/export poses, image encoding, project round trips, lens coverage and export topology. Sampled collision tests use actual solid intersections. See [CONTRIBUTING.md](CONTRIBUTING.md) for development and bug-report guidance.
+The current suite contains 49 tests covering numerical parity with the original optical evaluation, optimized-profile geometry and the three mechanisms across surface families, switch-slot reach, rack-driven motion, matching preview/export poses, image encoding, project round trips, lens coverage and export topology. Sampled collision tests use actual solid intersections. See [CONTRIBUTING.md](CONTRIBUTING.md) for development and bug-report guidance.
 
 | Location | Responsibility |
 | --- | --- |
+| `src/optics.mjs`, `src/optics.worker.mjs` | Original evaluation ray tracer, grid search and cylinder benchmark |
+| `src/optical-section.mjs`, `src/optics-panel.mjs` | Local section evaluation, numerical reporting and application to geometry |
 | `src/surface.mjs` | Curve interpolation, rigid motion, surface frames and UV projection |
 | `src/model.mjs`, `src/project.mjs` | Parameters, image-state encoding and saved-project validation |
 | `src/geometry.mjs`, `src/geometry.worker.mjs` | Solid generation, booleans and collision checks in a worker |

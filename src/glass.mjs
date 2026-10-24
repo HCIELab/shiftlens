@@ -12,7 +12,7 @@ varying vec3 lensSurfaceNormal;varying vec3 lensTangent;varying float lensPitch;
 uniform sampler2D encoded;
 uniform mat4 worldToAssembly;
 uniform float radius0,radius1,angle0,sweep,delta,rotation,paperZ,phase,lensCount,encodedWidth,lensTop,lensIor,stateCount;
-uniform bool door,rayTrace;
+uniform bool door,rayTrace,circularProfile;
 ${apertureGLSL}
 bool selectedImage(vec3 p,vec3 n,vec3 view,out vec3 color){
   float r=length(p.xy),theta=atan(p.y,p.x);
@@ -49,7 +49,7 @@ bool selectedImage(vec3 p,vec3 n,vec3 view,out vec3 color){
   float local=(fract((theta-angle0-rotation)/delta)-.5)*delta;
   float g=sqrt(max(.0000001,pow(sin(delta*.5),2.)-pow(sin(local),2.)));
   vec2 radial=p.xy/r,tangent=vec2(-radial.y,radial.x);
-  vec3 frontNormal=normalize(vec3(-g*radial+sin(local)*cos(local)/g*tangent,1.));
+  vec3 frontNormal=circularProfile?n:normalize(vec3(-g*radial+sin(local)*cos(local)/g*tangent,1.));
   vec3 inside=refract(-view,frontNormal,1./lensIor);
   color=vec3(.012);
   if(inside.z>=-.0001)return true;
@@ -72,7 +72,7 @@ export function makeGlass({imagePreview=false}={}) {
     specularIntensity:1,side:THREE.FrontSide,
   });
   if(!imagePreview)return material;
-  material.uniforms={encoded:{value:null},worldToAssembly:{value:new THREE.Matrix4()},radius0:{value:100},radius1:{value:170},angle0:{value:0},sweep:{value:1},delta:{value:.05},rotation:{value:0},lensIor:{value:1.5},paperZ:{value:-.53},phase:{value:0},door:{value:true},rayTrace:{value:false},stateCount:{value:2},lensCount:{value:14},encodedWidth:{value:2048},lensTop:{value:6}};
+  material.uniforms={encoded:{value:null},worldToAssembly:{value:new THREE.Matrix4()},radius0:{value:100},radius1:{value:170},angle0:{value:0},sweep:{value:1},delta:{value:.05},rotation:{value:0},lensIor:{value:1.5},paperZ:{value:-.53},phase:{value:0},door:{value:true},rayTrace:{value:false},circularProfile:{value:false},stateCount:{value:2},lensCount:{value:14},encodedWidth:{value:2048},lensTop:{value:6}};
   material.onBeforeCompile=shader=>{
     Object.assign(shader.uniforms,material.uniforms);
     shader.vertexShader=`attribute float surfaceHeight;attribute vec3 surfaceNormal;attribute vec3 surfaceTangent;attribute float surfacePitch;varying vec2 lensUv;varying float lensHeight;varying vec3 lensSurfaceNormal;varying vec3 lensTangent;varying float lensPitch;\n`+shader.vertexShader;

@@ -30,7 +30,7 @@ export function createNativeMechanism(surface,d,point,type=d.mechanismType??'swi
     const upper=framePoint(f,[0,0,height]),mid=motionPoint(surface,upper,travel/2),middle=switchFrame(surface,u+travel/2,v);
     m.frame={...middle,origin:sub(mid,scale(middle.z,h))};m.height=height;m.h=h;
   }else{
-    const height=type==='knob'?paper-1.2941816556:1.2608163557;
+    const height=type==='knob'?paper-1.2941816556:(d.opticalProfile?Math.max(1.2608163557,d.topMax-NATIVE.roller.tip+.8):1.2608163557);
     m.frame={...f,origin:framePoint(f,[0,0,height])};m.height=height;
     m.radius=NATIVE[type].radius;m.period=NATIVE[type].period;
     const contact=type==='roller'?[0,0,-m.radius]:[m.radius,0,0];

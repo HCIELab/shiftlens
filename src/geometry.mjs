@@ -1,3 +1,4 @@
+import {capHeight,capSag} from './optics.mjs';
 import {derive, DEG} from './model.mjs';
 import {surfaceAt, frameAt, add, scale, doorSurface, surfaceMetrics, projectSurfaceUV, motionPoint, dot, sub} from './surface.mjs';
 import originalDoor from './assets/original-door.mjs';
@@ -65,7 +66,7 @@ export function buildAssembly(lib,parameters,{collisionSamples=9,surface=null}={
     const metrics=door?{count:d.count,minPitch:d.innerRadius*d.delta,maxPitch:d.outerRadius*d.delta}:surfaceMetrics(s,d.pitch),count=metrics.count;
     const uStart=door?-0.5:0,uEnd=uStart+1,extra=1/count,lensStart=uStart-extra;
     const nativeLens=door&&d.nativeProfile,nativeRails=nativeLens&&usesOriginalRails(d);
-    const topMax=door?d.rimHeight:d.substrate+metrics.maxPitch/2+0.5;
+    const topMax=d.opticalProfile?d.substrate+capSag(metrics.maxPitch,d.lensRadiusRatio)+.5:(door?d.rimHeight:d.substrate+metrics.maxPitch/2+0.5);
     const paper=door?d.paperZ:-d.gap-d.maskThickness, bottom=paper-d.baseThickness;
     const baseParts=[solid(surfaceBand(s,uStart,uEnd,0,1,bottom,()=>paper,Math.max(32,count*3),32))];
     const lensParts=[],maskParts=[];
@@ -76,8 +77,8 @@ export function buildAssembly(lib,parameters,{collisionSamples=9,surface=null}={
         lensParts.push(own(solid({positions:cell.positions,triangles:cell.indices}).rotate([0,0,k*d.delta/DEG])));
       }else lensParts.push(solid(surfaceBand(s,u0,u1,0,1,0,(a,b,u,v)=>{
         let width;
-        if(door){const r=d.innerRadius+(d.outerRadius-d.innerRadius)*v;const x=r*Math.sin((a-0.5)*d.delta),R=r*Math.sin(d.delta/2);return d.substrate+Math.sqrt(Math.max(0,R*R-x*x));}
-        const left=surfaceAt(s,u0,v),right=surfaceAt(s,u1,v);width=Math.hypot(...left.map((x,i)=>x-right[i]));return d.substrate+width*Math.sqrt(Math.max(0,0.25-(a-0.5)**2));
+        if(door){const r=d.innerRadius+(d.outerRadius-d.innerRadius)*v;const x=r*Math.sin((a-0.5)*d.delta),R=r*Math.sin(d.delta/2);return d.opticalProfile?capHeight(2*R,x,d.substrate,d.lensRadiusRatio):d.substrate+Math.sqrt(Math.max(0,R*R-x*x));}
+        const left=surfaceAt(s,u0,v),right=surfaceAt(s,u1,v);width=Math.hypot(...left.map((x,i)=>x-right[i]));return d.opticalProfile?capHeight(width,width*(a-.5),d.substrate,d.lensRadiusRatio):d.substrate+width*Math.sqrt(Math.max(0,0.25-(a-0.5)**2));
       },20,Math.max(12,s.curve.points.length*8))));
       for(const[a,b]of[[0,.5-.5/d.stateCount],[.5+.5/d.stateCount,1]])maskParts.push(solid(surfaceBand(s,u0+(u1-u0)*a,u0+(u1-u0)*b,0,1,nativeLens?0:-d.maskThickness,()=>nativeLens?d.maskThickness:0,2,32)));
     }
