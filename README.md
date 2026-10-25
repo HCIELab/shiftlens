@@ -69,6 +69,8 @@ Choose a mechanism and click **Place the Switch / Knob / Roller**. The original 
 
 Switch, knob and roller use meshes from the original project CAD. The web implementation fits mounts, rack tracks and clearance openings to the selected surface; the source gear teeth and handles are not replaced with approximations. Smooth knob and roller motion are continuous. The knob also offers **Indexed wall (experimental)**: a generated compliant wall cut from the original pinion poses at the image states, plus nearest-state selection on drag release. This is new web geometry. The wall is shown undeformed; elastic response, holding force and extra equilibrium positions are not solved. See [mechanism provenance](docs/native-mechanisms.md).
 
+A pale reference line on the knob cap makes its rotation easier to see. It follows the existing CAD motion and serves as a viewport orientation cue.
+
 Upload a PNG, JPEG or WebP image for each state. Use **Adjust image** for fit, zoom and crop controls, and **Preview State in Viewport** to inspect a specific state. **Use reference sign images** loads the supplied door-sign artwork.
 
 ### 3. Simulate and export

@@ -4,6 +4,7 @@ import {DEG} from './model.mjs';
 import {frameAt, projectSurfaceUV} from './surface.mjs';
 import {frameMatrix} from './actuation.mjs';
 import {makeGlass} from './glass.mjs';
+import {makeActuatorMaterial,setKnobIndicator} from './knob-indicator.mjs';
 import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
 import {toCreasedNormals} from 'three/addons/utils/BufferGeometryUtils.js';
 import {SwitchPreview} from './switch-preview.mjs';
@@ -21,7 +22,7 @@ export class Viewer{
     this.scene.add(new THREE.HemisphereLight(0xffffff,0xb4bfba,.7));const light=new THREE.DirectionalLight(0xffffff,1.8);light.position.set(-80,-100,220);light.castShadow=false;light.shadow.mapSize.set(2048,2048);light.shadow.camera.left=-250;light.shadow.camera.right=250;light.shadow.camera.top=250;light.shadow.camera.bottom=-250;light.shadow.normalBias=.15;this.scene.add(light);
     this.root=new THREE.Group();this.root.rotation.z=Math.PI/2;this.scene.add(this.root);this.raycaster=new THREE.Raycaster();
     this.switchPreview=new SwitchPreview();this.root.add(this.switchPreview);
-    this.materials={body:new THREE.MeshStandardMaterial({color:'#dce5dd',roughness:.65}),mask:new THREE.MeshStandardMaterial({color:'#253c32',roughness:.7}),actuator:new THREE.MeshStandardMaterial({color:'#34383b',roughness:.52}),assembly:makeGlass()};
+    this.materials={body:new THREE.MeshStandardMaterial({color:'#dce5dd',roughness:.65}),mask:new THREE.MeshStandardMaterial({color:'#253c32',roughness:.7}),actuator:makeActuatorMaterial(),assembly:makeGlass()};
     this.optical=makeGlass({imagePreview:true});
     new ResizeObserver(()=>this.resize()).observe(host);
     this.renderer.domElement.addEventListener('pointerdown',e=>this.beginActuation(e),true);
@@ -39,7 +40,7 @@ export class Viewer{
   }
   resize(){const w=this.host.clientWidth,h=this.host.clientHeight;if(!w||!h)return;this.renderer.setSize(w,h);this.camera.aspect=w/h;this.camera.updateProjectionMatrix();}
   geometry(part){const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(part.positions,3));g.setIndex(new THREE.BufferAttribute(part.indices,1));if(part.uv)g.setAttribute('uv',new THREE.BufferAttribute(part.uv,2));else{const uv=new Float32Array(part.positions.length/3*2),d=this.assembly.derived;for(let i=0;i<part.positions.length/3;i++){const x=part.positions[i*3],y=part.positions[i*3+1];uv[i*2]=(Math.atan2(y,x)-(d.a0-d.delta))/(d.sweep+2*d.delta);uv[i*2+1]=(Math.hypot(x,y)-d.innerRadius)/(d.outerRadius-d.innerRadius);}g.setAttribute('uv',new THREE.BufferAttribute(uv,2));}if(part.surfaceHeight)g.setAttribute('surfaceHeight',new THREE.BufferAttribute(part.surfaceHeight,1));if(part.surfaceNormal)g.setAttribute('surfaceNormal',new THREE.BufferAttribute(part.surfaceNormal,3));if(part.surfaceTangent)g.setAttribute('surfaceTangent',new THREE.BufferAttribute(part.surfaceTangent,3));if(part.surfacePitch)g.setAttribute('surfacePitch',new THREE.BufferAttribute(part.surfacePitch,1));const smooth=toCreasedNormals(g,Math.PI/5);g.dispose();return smooth;}
-  setAssembly(a,refit=false){this.assembly=a;this.placementPending=false;this.switchPreview.hide();if(refit)this.previewFramed=false;for(const mesh of this.meshes??[]){this.root.remove(mesh);mesh.geometry.dispose();}if(this.pattern){this.root.remove(this.pattern);this.pattern.geometry.dispose();this.pattern.material.dispose();}this.meshes=[];
+  setAssembly(a,refit=false){this.assembly=a;setKnobIndicator(this.materials.actuator,a.mechanism);this.placementPending=false;this.switchPreview.hide();if(refit)this.previewFramed=false;for(const mesh of this.meshes??[]){this.root.remove(mesh);mesh.geometry.dispose();}if(this.pattern){this.root.remove(this.pattern);this.pattern.geometry.dispose();this.pattern.material.dispose();}this.meshes=[];
     for(const part of a.parts){const mesh=new THREE.Mesh(this.geometry(part),part.material==='clear'?this.optical:this.materials[part.material]);mesh.name=part.id;mesh.userData=part;mesh.castShadow=false;mesh.receiveShadow=false;mesh.visible=this.visible[part.id]!==false&&!(this.placing&&part.id==='actuator');this.root.add(mesh);this.meshes.push(mesh);}
     const patternPart={positions:new Float32Array(a.patternMesh.positions),indices:new Uint32Array(a.patternMesh.triangles),uv:a.patternMesh.uv};this.pattern=new THREE.Mesh(this.geometry(patternPart),new THREE.MeshBasicMaterial({map:this.texture??null,side:THREE.DoubleSide,polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1}));this.root.add(this.pattern);
     if(a.mechanism?.paperCut){
