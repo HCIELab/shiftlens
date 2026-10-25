@@ -3,6 +3,10 @@
 const DEG = Math.PI / 180;
 export const OPTICS_MODEL = 'shiftlens-evaluation-uniform-x-v1';
 export const OPTICS_PROVENANCE = Object.freeze({source:'10_Evaluation',tracer:'2_optimization/optimize_lens.py::phi_curve',curvedSurface:'4_curved-surface/compute_opv.py',sourceSha256:{'2_optimization/ray_trace.py':'c7f1f397565af6a32d2c9c6acfaeb3e04a0f72402265593f538093fdcd09310a','2_optimization/optimize_lens.py':'4887fc5a3f4dc61c82be70b485d5f26fc3d39cf8b3dd94e601920b01ae2ce978','4_curved-surface/compute_opv.py':'163aa01a92321a5ee7b03d61d78be3e3f4adcd7d364ebca92c49c97560c04bcc'}});
+export const SOURCE_PROFILE = 'source-1deg-v1';
+export const REFINED_PROFILE = 'recomputed-halfdeg-v1';
+export const OPTICS_PROFILES = Object.freeze({[SOURCE_PROFILE]:{step:1,label:'Source script · 1°'},[REFINED_PROFILE]:{step:.5,label:'Refined search · 0.5°'}});
+export function profileAngles(profile=SOURCE_PROFILE){const p=OPTICS_PROFILES[profile];if(!p)throw new Error('Unknown optical data version.');return Array.from({length:Math.round(89/p.step)+1},(_,i)=>i*p.step);}
 export const SEARCH_ANGLES = Object.freeze(Array.from({length:90},(_,i)=>i));
 export function validateOptics({p,r,h,N,ior=1.52,rays=64}) {
   if (![p,r,h,ior].every(Number.isFinite) || p<=0 || r<=p/2 || h<0 || ior<=1 || ior>3 || !Number.isInteger(N) || N<2 || N>10 || !Number.isInteger(rays) || rays<2 || rays>4096) throw new Error('Use a positive pitch, radius greater than half the pitch, nonnegative height, 2–10 states, and 2–4096 rays.');
@@ -36,8 +40,8 @@ export function viewingHalfAngle(angles,phis,threshold=.7) {
   const failed=phis.findIndex(x=>x<threshold);return angles[failed<0?angles.length-1:failed-1];
 }
 export function lensResult(input,threshold=.7) {
-  const q={ior:1.52,rays:64,...input},phis=phiCurve(q),theta=viewingHalfAngle(SEARCH_ANGLES,phis,threshold);
-  return {...q,threshold,angles:[...SEARCH_ANGLES],phis,theta,passes:phis[0]>=threshold,sag:q.r-Math.sqrt(q.r*q.r-q.p*q.p/4)};
+  const q={ior:1.52,rays:64,...input},angles=profileAngles(q.profile),phis=phiCurve(q,angles),theta=viewingHalfAngle(angles,phis,threshold);
+  return {...q,threshold,angles,phis,theta,thetaDefinition:'Contiguous half-angle where target-strip visibility stays at or above the selected minimum',profile:q.profile??SOURCE_PROFILE,angleStep:OPTICS_PROFILES[q.profile??SOURCE_PROFILE].step,passes:phis[0]>=threshold,sag:q.r-Math.sqrt(q.r*q.r-q.p*q.p/4)};
 }
 export function buildGrid(p,nr=50,nh=50) {
   if(!Number.isFinite(p)||p<=0||![nr,nh].every(n=>Number.isInteger(n)&&n>=2&&n<=100))throw new Error('Invalid search grid.');
@@ -45,24 +49,24 @@ export function buildGrid(p,nr=50,nh=50) {
 }
 // Keep strict > and r-major/h-minor order: Python resolves tied optima by the
 // first grid entry, even when no design passes the requested threshold at 0°.
-export function optimizeLens({p,N,ior=1.52,threshold=.7,minHeight=0,maxSubstrate=20,paperZ=0,nr=50,nh=50},onProgress=()=>{}) {
+export function optimizeLens({p,N,ior=1.52,threshold=.7,minHeight=0,maxSubstrate=20,paperZ=0,nr=50,nh=50,profile=SOURCE_PROFILE},onProgress=()=>{}) {
   validateOptics({p,N,ior,r:p/2+.01,h:0,rays:64});
   if(!Number.isFinite(threshold)||threshold<=0||threshold>1||!Number.isFinite(minHeight)||minHeight<0)throw new Error('Invalid optimization threshold or height.');
-  const {radii,heights}=buildGrid(p,nr,nh);let best=null,fitted=null;
+  const {radii,heights}=buildGrid(p,nr,nh),angles=profileAngles(profile);let best=null,fitted=null;
   for(let i=0;i<radii.length;i++){
     for(const h of heights){
-      const q={p,r:radii[i],h,N,ior,rays:64};
+      const q={p,r:radii[i],h,N,ior,rays:64,profile};
       // Stop at the first failed angle; subsequent islands cannot increase θ.
       // Full curves are recomputed for the selected candidates below.
       let theta=0,passes=false;
-      for(const a of SEARCH_ANGLES){const phi=phiCurve(q,[a])[0];if(a===0)passes=phi>=threshold;if(phi<threshold)break;theta=a;}
+      for(const a of angles){const phi=phiCurve(q,[a])[0];if(a===0)passes=phi>=threshold;if(phi<threshold)break;theta=a;}
       const candidate={...q,theta,passes};
       if(!best||theta>best.theta)best=candidate;
       if(h>=minHeight&&h+paperZ<=maxSubstrate&&(!fitted||theta>fitted.theta))fitted=candidate;
     }
     onProgress((i+1)/radii.length);
   }
-  return {model:OPTICS_MODEL,provenance:OPTICS_PROVENANCE,grid:{nr,nh,rMin:p/2+.01,rMax:15*p,hMin:0,hMax:2*p,angleStep:1,rays:64},threshold,minHeight,paperZ,best:lensResult(best,threshold),fitted:fitted?lensResult(fitted,threshold):null};
+  return {model:OPTICS_MODEL,provenance:OPTICS_PROVENANCE,grid:{nr,nh,rMin:p/2+.01,rMax:15*p,hMin:0,hMax:2*p,angleStep:OPTICS_PROFILES[profile].step,angleEnd:89,rays:64},profile,threshold,minHeight,paperZ,best:lensResult(best,threshold),fitted:fitted?lensResult(fitted,threshold):null};
 }
 export function overallVisibility(offsets,phis) {
   if(!offsets.length||offsets.length!==phis.length||offsets.some(a=>!Number.isFinite(a)||Math.abs(a)>=90)||phis.some(v=>!Number.isFinite(v)||v<0||v>1))throw new Error('OPV needs matching front-facing angles and visibility values.');

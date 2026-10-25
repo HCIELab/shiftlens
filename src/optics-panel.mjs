@@ -1,3 +1,5 @@
+import {OPTICS_PROFILES} from './optics.mjs';
+import {paperReference} from './paper-reference.mjs';
 import {evaluateAssembly,opticalSection} from './optical-section.mjs';
 const percent=x=>`${(100*x).toFixed(1)}%`;
 const mm=x=>`${x.toFixed(3)} mm`;
@@ -14,15 +16,15 @@ export function visibilityChart(current,candidate,threshold){
     <text x="${left+width/2}" y="${H-3}" text-anchor="middle">Viewing angle from section normal</text></svg>`;
 }
 export class OpticsPanel {
-  constructor(host,onApply,onDownload){this.host=host;this.onApply=onApply;this.onDownload=onDownload;this.threshold=.7;this.section=.5;this.open=false;this.benchmarkOpen=false;this.revision=0;}
+  constructor(host,onApply,onDownload,onSettings){this.onSettings=onSettings;this.host=host;this.onApply=onApply;this.onDownload=onDownload;this.threshold=.7;this.profile='recomputed-halfdeg-v1';this.section=.5;this.open=false;this.benchmarkOpen=false;this.revision=0;}
   invalidate(waiting=false){this.waiting=waiting;this.worker?.terminate();this.worker=null;this.busy=false;this.result=null;this.benchmark=null;this.a=null;this.current=null;this.error='';this.revision++;this.render();}
-  setAssembly(a){this.invalidate();this.a=a;this.evaluate();}
+  setAssembly(a){this.invalidate();this.a=a;this.threshold=a.derived.visibilityThreshold??.7;this.profile=a.derived.opticsProfile;this.evaluate();}
   evaluate(){try{this.current=this.a?evaluateAssembly(this.a,this.threshold,this.section):null;this.error='';}catch(e){this.current=null;this.error=e.message;}this.render();}
   run(benchmark=false){
     if(!this.a)return;
     this.worker?.terminate();const revision=++this.revision;this.busy=true;this.progress=0;this.error='';
     if(benchmark)this.benchmark=null;else this.result=null;
-    const input=benchmark?{p:5,N:this.a.derived.stateCount,ior:1.52,threshold:this.threshold}: {...opticalSection(this.a,this.section),threshold:this.threshold,minHeight:this.a.derived.gap+.18+.4,paperZ:-this.a.derived.gap-.18};
+    const input=benchmark?{p:5,N:this.a.derived.stateCount,ior:1.52,threshold:this.threshold,profile:this.a.derived.opticsProfile}: {...opticalSection(this.a,this.section),threshold:this.threshold,minHeight:this.a.derived.gap+.18+.4,paperZ:-this.a.derived.gap-.18};
     this.worker=new Worker(new URL('./optics.worker.mjs',import.meta.url),{type:'module'});
     this.worker.onmessage=({data})=>{
       if(data.revision!==this.revision)return;
@@ -36,12 +38,13 @@ export class OpticsPanel {
     // computes its benchmark from the selected optimum after the search.
     this.worker.postMessage({revision,operation:'optimize',input,options:{threshold:this.threshold,benchmark:benchmark?{radius:25,lenses:15}:null}});this.render();
   }
-  report(){return {current:this.current,optimization:this.result,paperBenchmark:this.benchmark};}
+  report(){return {current:this.current,optimization:this.result??this.a?.optimization??null,paperBenchmark:this.benchmark,paperReference};}
   render(){
     const host=this.host();if(!host)return;
     const a=this.a,c=this.current,f=this.result?.fitted,b=this.result?.best,benchmark=this.benchmark;
     host.innerHTML=`
-      <p class="hint">Original evaluation: weighted target-strip visibility φ and viewing half-angle θ.</p>
+      <p class="hint">Weighted target-strip visibility φ and effective viewing half-angle θ. θ uses the selected visibility minimum.</p>
+      <label class="fit-label">Search version <select id="optics-profile" aria-label="Optical data version">${Object.entries(OPTICS_PROFILES).map(([key,value])=>`<option value="${key}" ${(a?.derived.opticsProfile??this.profile)===key?'selected':''}>${value.label}</option>`).join('')}</select></label>
       <label class="fit-label">Minimum visibility φ <input id="optics-threshold" type="number" aria-label="Minimum target visibility" min="0.1" max="0.9" step="0.05" value="${this.threshold}"></label>
       <label class="fit-label">Along primary curve <input id="optics-section" type="range" aria-label="Optical evaluation section" min="0" max="1" step="0.01" value="${this.section}"><output>${Math.round(100*this.section)}%</output></label>
       ${c?`<p class="optics-dimensions">${c.N} states · pitch ${mm(c.p)} · radius ${mm(c.r)}<br>Height to image ${mm(c.h)} · IOR ${c.ior.toFixed(2)}<br>${a.sourceGeometry?'Original CAD: nominal circular-section estimate.':'Generated circular section.'}</p>
@@ -53,6 +56,7 @@ export class OpticsPanel {
       ${b?`<p>Unconstrained source grid: r = ${mm(b.r)}, h = ${mm(b.h)}; ${b.passes?`±${b.theta}°`:'below minimum'}.</p>
       ${f?`<p>Fit to this assembly: r = ${mm(f.r)}, h = ${mm(f.h)}; ${f.passes?`±${f.theta}°`:'below minimum'}. The fit keeps the image gap and at least 0.4 mm of lens substrate.</p>
       ${f.passes&&c&&f.theta<=c.theta?'<p class="hint">This grid candidate does not improve the current nominal viewing half-angle.</p>':''}<button id="optics-apply" ${!f.passes||this.busy?'disabled':''}>Apply fitted lens profile</button><p class="hint">Changes the lens profile and regenerates rails, mechanism clearances and collision checks. Radius/pitch is preserved across the surface.</p>`:'<p>No profile in the source grid fits this image gap and substrate.</p>'}`:''}
+      <details class="optics-versions"><summary>Paper data versions</summary><p class="hint">The supplied scripts use a 1° search. A 0.5° recomputation reproduces Fig. 8c height labels. Published θ labels have an unresolved definition; this tool always uses the contiguous range above the selected minimum.</p></details>
       <details class="optics-reference" ${this.benchmarkOpen?'open':''}><summary>Paper cylinder benchmark</summary><p class="hint">Independent reference: 50 mm diameter, 5 mm pitch, 15 lenses, IOR 1.52. Uses the current state count and visibility minimum.</p><button id="optics-benchmark" ${!c||this.busy?'disabled':''}>Run paper benchmark</button>
       ${benchmark?`<p>${benchmark.optimization.best.N} states: r = ${mm(benchmark.optimization.best.r)}, h = ${mm(benchmark.optimization.best.h)}, viewing range ${benchmark.optimization.best.passes?`±${benchmark.optimization.best.theta}°`:'below minimum'}; overall visibility ${percent(benchmark.cylinder.opv)}.</p>`:''}</details>
       <p class="hint">Same single-interface model as the supplied evaluation code. The image gap's exit refraction, aperture mask and material/print effects are excluded. Image animation remains an idealized preview. Physical validation of web-generated parts is pending.</p>
@@ -61,7 +65,8 @@ export class OpticsPanel {
     const byId=id=>host.querySelector(`#${id}`);
     host.querySelector('.optics-reference').ontoggle=e=>{this.benchmarkOpen=e.target.open;};
     byId('optics-section').oninput=e=>{e.target.nextElementSibling.textContent=`${Math.round(Number(e.target.value)*100)}%`;};
-    byId('optics-threshold').onchange=e=>{const value=Number(e.target.value);if(!Number.isFinite(value)||value<.1||value>.9){e.target.value=this.threshold;return;}this.threshold=value;this.result=null;this.benchmark=null;this.worker?.terminate();this.busy=false;this.revision++;this.evaluate();};
+    byId('optics-profile').onchange=e=>{this.profile=e.target.value;this.onSettings?.({opticsProfile:e.target.value});};
+    byId('optics-threshold').onchange=e=>{const value=Number(e.target.value);if(!Number.isFinite(value)||value<.1||value>.9){e.target.value=this.threshold;return;}if(this.onSettings){this.threshold=value;this.onSettings({visibilityThreshold:value});return;}this.threshold=value;this.result=null;this.benchmark=null;this.worker?.terminate();this.busy=false;this.revision++;this.evaluate();};
     byId('optics-section').onchange=e=>{this.section=Number(e.target.value);this.result=null;this.worker?.terminate();this.busy=false;this.revision++;this.evaluate();};
     byId('optics-run').onclick=()=>this.run();
     byId('optics-benchmark').onclick=()=>this.run(true);

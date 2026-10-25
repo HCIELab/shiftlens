@@ -50,9 +50,9 @@ Choose a surface family, then **Define…** the primary curve and motion:
 | Revolution | Rotate a curve around an axis | Fan-shaped signs or vessels |
 | Screw | Combine rotation and translation along an axis | Helical or twisted surfaces |
 
-Draw a polyline or smooth curve, edit its XYZ coordinates, or import an XYZ/CSV/JSON point list. Define the axis origin and direction, sweep angle and/or translation distance. Adjust lens width, lens side, retaining rails and carrier thickness.
+Draw a polyline or smooth curve, edit its XYZ coordinates, or import an XYZ/CSV/JSON point list. Define the axis origin and direction, sweep angle and/or translation distance. Adjust lens width, lens side, retaining rails and carrier thickness. New designs default to a 5 mm carrier and 3 mm rails, matching the paper's fabrication baseline; this does not transfer its durability measurements to new web-generated parts.
 
-Open **Optical evaluation and optimization** in this step to evaluate the selected lens section, inspect its visibility curve, search the original 50 × 50 radius/height grid, and optionally apply a fitted circular profile. The fit preserves the image gap and minimum substrate thickness, then regenerates geometry, rails, native mechanism mounts and collision checks. The independent paper-cylinder benchmark and downloadable optical report are in the same panel. See [optical evaluation](docs/optics.md) for the exact model and source identities.
+Open **Optical evaluation and optimization** in this step to evaluate the selected lens section, inspect its visibility curve, search the 50 × 50 radius/height grid, choose a versioned angular resolution, and apply a fitted circular profile. The fit preserves the image gap and minimum substrate thickness, then regenerates geometry, rails, native mechanism mounts and collision checks. The independent paper-cylinder benchmark and downloadable optical report are in the same panel. See [optical evaluation](docs/optics.md) for the exact model and source identities.
 
 The door sign is one example of this curve-based model. It is not a separate design mode. Compatible shapes must come from one of the three rigid-motion surface families; arbitrary meshes and arbitrary motion paths are not supported.
 
@@ -67,11 +67,13 @@ Choose a mechanism and click **Place the Switch / Knob / Roller**. The original 
 | Roller | Drag the wheel along its rolling direction | 2–10 |
 | User Custom | Control the lens with the timeline | 2–10 |
 
-Switch, knob and roller use meshes from the original project CAD. The web implementation fits mounts, rack tracks and clearance openings to the selected surface; the source gear teeth and handles are not replaced with approximations. Knob and roller use continuous motion. Physical detents are not implemented.
+Switch, knob and roller use meshes from the original project CAD. The web implementation fits mounts, rack tracks and clearance openings to the selected surface; the source gear teeth and handles are not replaced with approximations. Smooth knob and roller motion are continuous. The knob also offers **Indexed wall (experimental)**: a generated compliant wall cut from the original pinion poses at the image states, plus nearest-state selection on drag release. This is new web geometry. The wall is shown undeformed; elastic response, holding force and extra equilibrium positions are not solved. See [mechanism provenance](docs/native-mechanisms.md).
 
 Upload a PNG, JPEG or WebP image for each state. Use **Adjust image** for fit, zoom and crop controls, and **Preview State in Viewport** to inspect a specific state. **Use reference sign images** loads the supplied door-sign artwork.
 
 ### 3. Simulate and export
+
+**Optimize lenses before simulation and export** is enabled by default. Start and Export first fit the center lens section, rebuild the complete assembly, and check rigid intersections. Changing optical settings, state count or the curve invalidates the previous fit. Disable it to retain a manual profile or the original CAD. The Step 1 panel selects the minimum visibility and search version.
 
 Use **Start** for continuous playback, the timeline for manual scrubbing, or the mechanism itself for direct interaction. Mechanism pose, lens displacement and encoded-image sampling share the same phase. **Geometry**, **Image preview**, and **Encoded image** offer assembly inspection, appearance preview, and the actual interleaved print texture.
 
@@ -79,15 +81,16 @@ Use **Start** for continuous playback, the timeline for manual scrubbing, or the
 
 | Output | Contents |
 | --- | --- |
-| `assembly.3mf` | Named components, colors and millimeter units |
+| `assembly.3mf` | Closed components, material roles, millimeter units and embedded interleaved texture |
+| `assembly.wrl`, `carrier-texture.png` | Closed VRML97 components with carrier texture; coordinates in meters |
 | `parts/*.stl` | Individual component meshes at their state-1 assembly poses |
 | `project.shiftlens.json` | Editable curves, parameters, mechanisms, images and crop settings |
 | `encoded-pattern.png` | Interleaved image used by the preview |
 | `state-*.*` | Uploaded source images |
-| `verification.json` | Current optical evaluation, mesh statistics, sampled collisions and CAD/fitting provenance |
+| `verification.json` | Current optical evaluation and automatic fit with exact version, mesh statistics, rigid collisions, intended detent contact and CAD/fitting provenance |
 | `paper-insert.svg` | Full-size paper layout for the planar radial example, with cut outlines and a 10 mm scale check |
 
-With all state images assigned, these files are downloaded together in a ZIP. Without all images, Export provides the 3MF assembly. Invalid mechanism placements or detected part intersections block export. The encoded PNG is also available from the Encoded image view.
+With all state images assigned, these files are downloaded together in a ZIP. Without all images, Export provides a geometry-only 3MF assembly. Textured 3MF requires a Materials Extension-capable importer; VRML must stay beside its PNG. See [manufacturing export](docs/manufacturing-export.md). Invalid mechanism placements or detected part intersections block export. The encoded PNG is also available from the Encoded image view.
 
 ## Saving your work
 
@@ -102,18 +105,19 @@ This is a web reimplementation of the research workflow. The paper and demo vide
 - Curves in 3D, all three compatible motion families, lenses, image carrier and retaining rails.
 - Original-CAD switch, knob and roller, surface-aware placement, fitted geometry and synchronized motion.
 - Multiple uploaded images, interleaving, idealized appearance preview and continuous animation.
-- Original evaluation ray tracer, radius/height grid optimization, local section visibility and the paper cylinder benchmark.
+- Corrected evaluation ray tracer, automatic radius/height optimization, local section visibility and the paper cylinder benchmark. Versioned 0.5° and 1° searches with independent nine-state reference tables.
 - Project save/open and mesh, image and planar paper-template export.
 - Automated geometry, mechanism, placement-preview, encoding and export checks.
 
-The web tool now ports the supplied evaluation's **corrected weighted ray tracer and optical optimization**. Numerical parity tests compare its results against the original NumPy code. This source model assumes one air-to-lens interface and a homogeneous medium to the image plane; it excludes the mask, exit refraction and material/print effects. **Web-generated outputs have not yet been physically validated.** Image preview continues to use idealized lens-aperture reconstruction, not a calibrated prediction of a fabricated sample. The optional experimental ray trace is available only for planar radial surfaces. More image states in the editor do not establish that a particular lens/printer combination can separate them physically.
+The web tool ports the supplied evaluation's **corrected weighted ray tracer and optical optimization**. The default uses a **0.5° search** and the effective viewing-angle definition from §5.2. The supplied scripts' 1° version remains selectable. Fig. 8b/8c appear to mix design versions, and the published θ labels do not match that definition under either recovered numeric version. Original labels are retained as historical evidence; they are not used as test targets. See [paper data versions and the recomputed table](docs/paper-data-versions.md). Numerical parity tests compare its results against the original NumPy code. This source model assumes one air-to-lens interface and a homogeneous medium to the image plane; it excludes the mask, exit refraction and material/print effects. **Web-generated outputs have not yet been physically validated.** Image preview continues to use idealized lens-aperture reconstruction, not a calibrated prediction of a fabricated sample. The optional experimental ray trace is available only for planar radial surfaces. More image states in the editor do not establish that a particular lens/printer combination can separate them physically.
 
 Other current limits:
 
 - Curves use point-based smooth or polyline interpolation. Native Rhino/NURBS/STEP and arbitrary mesh import are not implemented.
+- One actuation mechanism per design; multi-actuator examples from the paper are not yet supported.
 - Physical print unwrapping is implemented for the planar radial example; general curved-surface paper templates are not implemented.
-- Collision checks sample motion positions and are not a proof of continuous clearance. A valid sampled assembly still needs fabrication and mechanical testing.
-- Exports are meshes, not editable STEP solids. The 3MF does not contain printer-specific multi-material recipes.
+- Collision checks sample motion positions and are not a proof of continuous clearance. Intended pinion/flexure contacts are recorded separately from rigid collisions. A valid sampled assembly still needs fabrication and mechanical testing.
+- Exports are meshes, not editable STEP solids. Texture and material-role exports do not contain printer-specific J55 recipes.
 
 See [simulation](SIMULATION.md), [rendering](RENDERING.md), and [native mechanism provenance](docs/native-mechanisms.md) for the models, measured CAD repairs and validation boundaries.
 
@@ -124,16 +128,17 @@ pnpm test
 pnpm build
 ```
 
-The current suite contains 49 tests covering numerical parity with the original optical evaluation, optimized-profile geometry and the three mechanisms across surface families, switch-slot reach, rack-driven motion, matching preview/export poses, image encoding, project round trips, lens coverage and export topology. Sampled collision tests use actual solid intersections. See [CONTRIBUTING.md](CONTRIBUTING.md) for development and bug-report guidance.
+The current suite contains 66 tests covering numerical parity with the original optical evaluation, optimized-profile geometry and the three mechanisms across surface families, switch-slot reach, rack-driven motion, matching preview/export poses, image encoding, project round trips, lens coverage, generated detent seats, texture coordinates and export topology. CI runs the tests and production build on Node 22 and 24. Sampled collision tests use actual solid intersections. See [CONTRIBUTING.md](CONTRIBUTING.md) for development and bug-report guidance.
 
 | Location | Responsibility |
 | --- | --- |
 | `src/optics.mjs`, `src/optics.worker.mjs` | Original evaluation ray tracer, grid search and cylinder benchmark |
+| `src/automatic-optics.mjs` | Saved optimization settings, invalidation signature and assembly-constrained automatic fitting |
 | `src/optical-section.mjs`, `src/optics-panel.mjs` | Local section evaluation, numerical reporting and application to geometry |
 | `src/surface.mjs` | Curve interpolation, rigid motion, surface frames and UV projection |
 | `src/model.mjs`, `src/project.mjs` | Parameters, image-state encoding and saved-project validation |
 | `src/geometry.mjs`, `src/geometry.worker.mjs` | Solid generation, booleans and collision checks in a worker |
-| `src/native-actuation.mjs`, `src/native-fitting.mjs` | CAD mechanism constraints, mounts, racks and clearance pockets |
+| `src/native-actuation.mjs`, `src/native-fitting.mjs`, `src/native-detents.mjs` | CAD mechanism constraints, mounts, racks and clearance pockets |
 | `src/viewer.mjs`, `src/glass.mjs`, `src/preview.mjs` | Viewport, interaction and appearance rendering |
 | `src/images.mjs`, `src/export.mjs` | Local image processing and downloadable output |
 | `src/main.mjs`, `src/curve-editor.mjs` | Three-step UI and curve editing |

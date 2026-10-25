@@ -97,6 +97,7 @@ export class Viewer{
   endActuation(event){
     const drag=this.actuatorDrag;if(!drag||event.pointerId!==drag.id)return;
     if(this.assembly.mechanism.type==='switch'&&event.type==='pointerup'&&Math.hypot(event.clientX-drag.startX,event.clientY-drag.startY)<8)this.onActuate?.(this.phase<.5?1:0);
+    if(event.type==='pointerup'&&this.assembly.mechanism.type==='knob'&&this.assembly.derived.knobMode==='indexed'){const n=this.assembly.derived.stateCount;this.onActuate?.(Math.round(this.phase*(n-1))/(n-1));}
     this.actuatorDrag=null;this.controls.enabled=true;this.renderer.domElement.style.cursor='grab';
     if(this.renderer.domElement.hasPointerCapture(event.pointerId))this.renderer.domElement.releasePointerCapture(event.pointerId);
   }

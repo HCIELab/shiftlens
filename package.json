@@ -12,10 +12,10 @@
   "dependencies": {
     "three": "0.180.0",
     "manifold-3d": "3.2.1",
-    "fflate": "0.8.2"
+    "fflate": "0.8.3"
   },
   "devDependencies": {
-    "vite": "7.1.12"
+    "vite": "7.3.7"
   },
   "packageManager": "pnpm@11.25.0",
   "description": "Browser-based ShiftLens surface, mechanism, image and fabrication design tool",

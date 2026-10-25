@@ -5,6 +5,7 @@ import originalDoor from './assets/original-door.mjs';
 import {usesOriginalRails} from './original-door-profile.mjs';
 import {nativePlacement,nativeAt,partMatrix} from './native-actuation.mjs';
 import {fitNative} from './native-fitting.mjs';
+import {fitKnobDetent} from './native-detents.mjs';
 
 export function meshFromGrid(nu,nv,point) {
   const positions=[],triangles=[];
@@ -109,13 +110,15 @@ export function buildAssembly(lib,parameters,{collisionSamples=9,surface=null}={
     }
     let base=union(baseParts),lens=union(lensParts),mask=union(maskParts),actor=null;
     const derived={...d,...metrics,topMax,paperZ:paper,physicalLensCount:count+1};
-    let mechanism=null,placement=null;
+    let mechanism=null,placement=null,detent=null,rigidBase=null;
     if(d.switchEnabled){
       const point=door?{radius:d.switchRadius,angle:d.switchAngleDeg}:{u:d.switchU,v:d.switchV};
       placement=nativePlacement(s,derived,point,d.mechanismType);
       if(placement.valid){
         mechanism=placement.mechanism;
         ({base,lens,mask,actor}=fitNative({own,solid,union,cut,box,cylinder,lib},s,derived,mechanism,{base,lens,mask}));
+        if(d.mechanismType==='knob'&&d.knobMode==='indexed')({base,detent}=fitKnobDetent({own,solid,union,cut,box,cylinder,lib},s,derived,mechanism,base));
+        if(detent){rigidBase=base;base=union([base,detent]);}
       }
     }
     const parts=[toPart('base','Image carrier and travel stops','body','fixed',base),toPart('lens','Lens housing and retaining rails','clear','lens',lens),toPart('mask','Opaque aperture bands','mask','lens',mask)];
@@ -125,10 +128,10 @@ export function buildAssembly(lib,parameters,{collisionSamples=9,surface=null}={
     for(let i=0;i<collisionSamples;i++){
       const phase=collisionSamples===1?0:i/(collisionSamples-1),moving=own(lens.transform(partMatrix(a,{motion:'lens'},phase)));
       const pairs=[[base,moving,['base','lens']]];
-      if(actor){const rotor=own(actor.transform(nativeAt(s,mechanism,phase).matrix));pairs.push([base,rotor,['base','actuator']],[moving,rotor,['lens','actuator']]);maxResidual=Math.max(maxResidual,nativeAt(s,mechanism,phase).residual);}
+      if(actor){const rotor=own(actor.transform(nativeAt(s,mechanism,phase).matrix));pairs.push([rigidBase??base,rotor,['base','actuator']],[moving,rotor,['lens','actuator']]);maxResidual=Math.max(maxResidual,nativeAt(s,mechanism,phase).residual);}
       for(const[x,y,ids]of pairs){const volume=own(x.intersect(y)).volume();maxCollision=Math.max(maxCollision,volume);if(volume>.02)collisions.push({phase,parts:ids,volume});}
     }
-    return{parts,derived,surface:s,door,mechanism,placement,mechanismSource:mechanism?{file:mechanism.source,sha256:mechanism.sha256,parts:mechanism.sourceParts,rack:mechanism.rack,capLift:mechanism.capLift??0}:null,retainingRailOwner:'lens',sourceGeometry:nativeLens?{file:originalDoor.source,sha256:originalDoor.sourceSha256,parts:nativeRails?['lens','rails']:['lens']}:null,checks:{collisionSamples,collisions,maxCollision,maxResidual,solids:parts.length},patternMesh:paperMesh(s,uStart,uEnd,paper+.08,Math.max(40,count*4),40)};
+    return{parts,derived,surface:s,door,mechanism,placement,mechanismSource:mechanism?{file:mechanism.source,sha256:mechanism.sha256,parts:mechanism.sourceParts,rack:mechanism.rack,capLift:mechanism.capLift??0}:null,retainingRailOwner:'lens',sourceGeometry:nativeLens?{file:originalDoor.source,sha256:originalDoor.sourceSha256,parts:nativeRails?['lens','rails']:['lens']}:null,checks:{collisionSamples,collisions,maxCollision,maxResidual,solids:parts.length,intendedElasticContacts:mechanism?.detent??null},patternMesh:paperMesh(s,uStart,uEnd,paper+.08,Math.max(40,count*4),40)};
   }finally{for(const resource of resources.reverse())try{resource.delete();}catch{}}
 }
 

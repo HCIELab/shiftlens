@@ -7,9 +7,9 @@ export function opticalSection(a,v=.5,u=null) {
   u??=start+.5;
   const k=Math.min(d.count-1,Math.max(0,Math.floor((u-start)*d.count))),u0=start+k/d.count;
   const p=Math.hypot(...sub(surfaceAt(a.surface,u0,v),surfaceAt(a.surface,u0+1/d.count,v)));
-  return {p,r:p*(d.opticalProfile?d.lensRadiusRatio:.5)+1e-10,h:d.substrate-d.paperZ,N:d.stateCount,ior:d.ior,rays:64};
+  return {p,r:p*(d.opticalProfile?d.lensRadiusRatio:.5)+1e-10,h:d.substrate-d.paperZ,N:d.stateCount,ior:d.ior,rays:64,profile:d.opticsProfile};
 }
-export function evaluateAssembly(a,threshold=.7,v=.5) {
+export function evaluateAssembly(a,threshold=a.derived.visibilityThreshold??.7,v=.5) {
   const input=opticalSection(a,v),result=lensResult(input,threshold),start=a.surface.startFraction??0,center=frameAt(a.surface,start+.5,v);
   const samples=[];
   for(let i=0;i<a.derived.count;i++){

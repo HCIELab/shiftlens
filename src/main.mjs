@@ -1,3 +1,4 @@
+import {optimizationSignature} from './automatic-optics.mjs';
 import {OpticsPanel} from './optics-panel.mjs';
 import './style.css';
 import {derive, DEG} from './model.mjs';
@@ -24,11 +25,12 @@ let state = newDesign();
 let assembly = null, revision = 0, imageRevision = 0, pending = false, failed = false;
 let phase = 0, playing = false, direction = 1, mode = 'assembly', placing = false;
 let encoded = null, timer, toastTimer, refit = true;
+let automaticSignature=null,automaticReport=null,pendingAction=null,requestedOptimization=false;
 const imageCache = new Map();
 const optics = new OpticsPanel(()=>$('optics-panel'), parameters=>{
   remember();Object.assign(state.parameters,parameters);
   renderWorkflow();schedule();
-}, report=>download('shiftlens-optical-evaluation.json',JSON.stringify(report,null,2),'application/json'));
+}, report=>download('shiftlens-optical-evaluation.json',JSON.stringify(report,null,2),'application/json'), settings=>{remember();Object.assign(state.parameters,settings);schedule();});
 
 
 try {
@@ -125,7 +127,8 @@ function syncShape() {
   state.parameters.sweepDeg = state.surface.motion.angleDeg;
   return true;
 }
-function schedule() {
+function schedule({action=null,optimize=false}={}) {
+  pendingAction=action;requestedOptimization=optimize;playing=false;
   optics.invalidate(designReady(state));
   clearTimeout(timer);
   revision++;
@@ -159,10 +162,11 @@ function rebuild() {
     const dimensions = derive(state.parameters);
     state.parameters.mechanismType=state.mechanism;
     state.parameters.stateCount=state.images.length;
-    worker.postMessage({revision, parameters: state.parameters, surface: radial ? null : state.surface});
+    worker.postMessage({revision, parameters: state.parameters, surface: radial ? null : state.surface,optimize:requestedOptimization});
   } catch (error) { showFailure(error.message); }
 }
 function showFailure(message) {
+  pendingAction=null;requestedOptimization=false;
   pending = false;
   failed = true;
   setPlacement(false);
@@ -172,8 +176,12 @@ function showFailure(message) {
 }
 worker.onmessage = async ({data}) => {
   if (data.revision !== revision) return;
+  if(data.progress!==undefined){$('status-text').textContent=`Optimizing lenses… ${Math.round(data.progress*100)}%`;return;}
   if (data.error) { showFailure(data.error); return; }
+  if(data.optimized){state.parameters=data.optimized.parameters;automaticSignature=data.optimized.signature;renderWorkflow();}
   assembly = data.assembly;
+  if(data.optimized)automaticReport=assembly.optimization;
+  else if(automaticReport&&automaticSignature===optimizationSignature(state.parameters,isPlanarRadial(state.surface)?null:state.surface))assembly.optimization=automaticReport;
   optics.setAssembly(assembly);
   viewer.setAssembly(assembly, refit);
   refit = false;
@@ -189,6 +197,9 @@ worker.onmessage = async ({data}) => {
   renderDetails();
   refreshAvailability();
   persist();
+  const action=pendingAction;pendingAction=null;requestedOptimization=false;
+  if(action==='play'){beginPlayback();}
+  if(action==='export'){exportFiles(true);}
 };
 worker.onerror = event => showFailure(`Geometry could not be computed: ${event.message}`);
 
@@ -245,18 +256,21 @@ function setPhase(value) {
   const m=assembly?.mechanism,k=m?nativeAt(assembly.surface,m,phase):null;
   $('travel-label').textContent=k?`${k.distance.toFixed(2)} mm lens · ${(k.angle/DEG).toFixed(1)}° ${m.type}`:assembly?.door?`${(assembly.derived.travel*phase/DEG).toFixed(2)}° lens`:'';
 }
+function needsAutomaticOptimization(){
+  return state.parameters.autoOptimize && automaticSignature!==optimizationSignature(state.parameters,isPlanarRadial(state.surface)?null:state.surface);
+}
+function beginPlayback(){
+  if(!assembly||pending||failed)return;
+  if(assembly.placement&&!assembly.placement.valid){notify(assembly.placement.message);return;}
+  if(assembly.checks.collisions.length){notify('Resolve the detected intersections before simulation.');return;}
+  setPlacement(false);viewer.exploded=false;$('explode').classList.remove('active');
+  viewer.update(phase);if(state.images.some(Boolean))setMode('appearance');playing=true;refreshAvailability();
+}
 function toggleSimulation() {
-  if (!assembly || pending || failed) return;
-  const start = !playing;
-  if (start) {
-    setPlacement(false);
-    viewer.exploded = false;
-    $('explode').classList.remove('active');
-    viewer.update(phase);
-    if (state.images.some(Boolean)) setMode('appearance');
-  }
-  playing = start;
-  refreshAvailability();
+  if(!assembly||pending||failed)return;
+  if(playing){playing=false;refreshAvailability();return;}
+  if(needsAutomaticOptimization()){remember();schedule({action:'play',optimize:true});return;}
+  beginPlayback();
 }
 function setPlacement(value,options={}) {
   placing = value;
@@ -341,12 +355,14 @@ function renderWorkflow() {
       <select id="mechanism" ${ready ? '' : 'disabled'}><option value="custom" ${state.mechanism === 'custom' ? 'selected' : ''}>User Custom</option><option value="switch" ${state.mechanism === 'switch' ? 'selected' : ''}>Switch</option><option value="knob" ${state.mechanism==='knob'?'selected':''}>Knob</option><option value="roller" ${state.mechanism==='roller'?'selected':''}>Roller</option></select>
       ${state.mechanism !== 'custom' ? `<button id="place-switch" class="place-button">Place the ${state.mechanism}</button><details class="advanced"><summary>Mechanism position</summary>${radial ? `${range('Radius', 'switchRadius', p.innerRadius + 17, p.outerRadius - 9, 0.5, p.switchRadius, ' mm')}${range('Angle', 'switchAngleDeg', -p.sweepDeg / 2 + 7, p.sweepDeg / 2 - 7, 0.25, p.switchAngleDeg, '°')}` : `${range('Along motion', 'switchU', .05, .95, .005, p.switchU)}${range('Along curve', 'switchV', .05, .95, .005, p.switchV)}`}</details>` : '<p class="hint">Use the timeline to move the lens.</p>'}
       ${state.mechanism!=='switch'?`<label class="fit-label">Image states <select id="state-count" aria-label="Number of image states">${Array.from({length:(state.mechanism==='knob'?5:10)-1},(_,i)=>i+2).map(n=>`<option value="${n}" ${state.images.length===n?'selected':''}>${n}</option>`).join('')}</select></label>`:''}
+      ${state.mechanism==='knob'?`<label class="fit-label">Knob motion <select id="knob-mode" aria-label="Knob motion"><option value="smooth" ${p.knobMode==='smooth'?'selected':''}>Smooth</option><option value="indexed" ${p.knobMode==='indexed'?'selected':''}>Indexed wall (experimental)</option></select></label>${p.knobMode==='indexed'?'<p class="hint">Adds a generated compliant wall with seats at the image states. Release the knob to select the nearest state. Wall deflection and physical holding force are not simulated.</p>':''}`:''}
       ${state.mechanism==='knob'||state.mechanism==='roller'?'<p class="hint">Drag the handle to move the lens, or use the timeline.</p>':''}
       <label class="group-label image-heading">Upload Images at Different States</label>
       ${state.images.map((url, i) => `<div class="image-state"><label class="state-label">${state.mechanism === 'custom'?'':state.mechanism[0].toUpperCase()+state.mechanism.slice(1)+' '}State ${i + 1}:</label><label class="browse-row"><span>${url ? 'Image loaded' : 'No image selected'}</span><span class="browse-button">Browse…</span><input type="file" data-upload="${i}" accept="image/png,image/jpeg,image/webp" aria-label="Upload image for state ${i + 1}"></label><div class="image-preview-row">${url ? `<img src="${url}" alt="Image for state ${i + 1}">` : '<div class="no-image">No image</div>'}<button data-preview="${i}">Preview State in Viewport</button>${url ? `<button class="remove-image" data-remove-image="${i}" aria-label="Remove image for state ${i + 1}">×</button>` : ''}</div>${url ? `<details class="advanced image-adjust"><summary>Adjust image</summary><label class="fit-label">Fit <select data-fit="${i}" aria-label="Image fit for state ${i + 1}"><option value="cover" ${state.crops[i].fit !== 'contain' ? 'selected' : ''}>Fill area</option><option value="contain" ${state.crops[i].fit === 'contain' ? 'selected' : ''}>Whole image</option></select></label>${range('Zoom', `crop-${i}-zoom`, 1, 3, 0.02, state.crops[i].zoom, '×', 'crop')}${range('Horizontal Crop', `crop-${i}-x`, -1, 1, 0.02, state.crops[i].x, '', 'crop')}${range('Vertical Crop', `crop-${i}-y`, -1, 1, 0.02, state.crops[i].y, '', 'crop')}</details>` : ''}</div>`).join('')}
       <button id="reference-images">Use reference sign images</button><button id="swap-images" ${hasImages() ? '' : 'disabled'}>Swap images</button>
     </section>
     <section class="step" aria-labelledby="step-3"><h2 id="step-3">Step 3: Simulate and Export</h2>
+      <label class="layer"><input id="auto-optimize" type="checkbox" ${p.autoOptimize?'checked':''}>Optimize lenses before simulation and export</label><p class="hint">Uses the visibility minimum and data version in Step 1. Turn off to keep a manually chosen profile or the original CAD.</p>
       <div class="selection-row"><label>Start Simulation</label><button id="start-simulation">Start</button></div>
       <div class="selection-row"><label>Export Files</label><button id="export">Export</button></div>
       <p class="hint" id="export-help"></p><button id="download-print" hidden>Download paper insert</button>
@@ -358,6 +374,7 @@ function renderWorkflow() {
 }
 
 function bindWorkflow() {
+  if($('knob-mode'))$('knob-mode').onchange=e=>{remember();state.parameters.knobMode=e.target.value;renderWorkflow();schedule();};
   $('optics-details').ontoggle=e=>{optics.open=e.target.open;};
   optics.render();
   document.querySelectorAll('[data-surface]').forEach(button => button.onclick = () => {
@@ -436,6 +453,7 @@ function bindWorkflow() {
   $('reference-images').onclick = async () => { remember(); state.images = [...referenceImages,...state.images.slice(2)]; state.crops = [...referenceCrops(),...state.crops.slice(2)]; renderWorkflow(); await updateImages(); if (assembly) setMode('appearance'); };
   $('swap-images').onclick = () => { remember(); state.images.reverse(); state.crops.reverse(); renderWorkflow(); updateImages(); };
   if ($('ray-trace')) $('ray-trace').onchange = event => { viewer.setRayTrace(event.target.checked); setMode('appearance'); updateReadyStatus(); renderDetails(); };
+  $('auto-optimize').onchange=e=>{remember();state.parameters.autoOptimize=e.target.checked;persist();};
   $('start-simulation').onclick = toggleSimulation;
   $('export').onclick = exportFiles;
   $('download-print').onclick = downloadPrint;
@@ -473,7 +491,7 @@ function renderDetails() {
   const d = assembly.derived, checks = assembly.checks;
   $('model-details').textContent = `${d.physicalLensCount ?? d.count} lenses · ${d.minPitch.toFixed(1)}–${d.maxPitch.toFixed(1)} mm pitch · ${checks.solids} solid parts`;
   $('model-checks').textContent = assembly.placement&&!assembly.placement.valid?assembly.placement.message: checks.collisionSamples > 0
-    ? checks.collisions.length ? `${checks.collisions.length} intersections detected.` : `No intersections at ${checks.collisionSamples} sampled positions.`
+    ? checks.collisions.length ? `${checks.collisions.length} intersections detected.` : `No rigid-part intersections at ${checks.collisionSamples} sampled positions.${assembly.mechanism?.detent?' Indexing-wall contact is intentional; elastic deflection is not simulated.':''}`
     : 'Collision sweep for this surface is not yet implemented.';
   $('preview-note').textContent = viewer.rayTrace && assembly.door
     ? 'Experimental geometric ray trace. Material, substrate and printer calibration are not validated.'
@@ -481,8 +499,9 @@ function renderDetails() {
   $('layers').innerHTML = assembly.parts.map(part => `<label class="layer"><input type="checkbox" data-layer="${part.id}" ${viewer.visible[part.id] !== false ? 'checked' : ''}>${escape(part.name)}</label>`).join('');
   $('layers').querySelectorAll('input').forEach(input => input.onchange = () => viewer.toggleLayer(input.dataset.layer, input.checked));
 }
-function exportFiles() {
+function exportFiles(prepared=false) {
   try {
+    if(prepared!==true&&assembly&&!pending&&!failed&&needsAutomaticOptimization()){remember();schedule({action:'export',optimize:true});return;}
     if (pending || failed || !assembly || assembly.checks.collisions.length) throw new Error('Wait for a valid computed assembly.');
     if (hasImages() && encoded) exportBundle(assembly, serializeDesign(state), encoded);
     else download('shiftlens-assembly.3mf', manufacturing3MF(assembly));

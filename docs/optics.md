@@ -8,9 +8,11 @@ The browser ports the supplied `10_Evaluation` numerical model. It runs in JavaS
 2. Choose the primary-curve position and minimum target visibility φ (default 0.7). The panel evaluates the current local lens section, plots φ at 0–89°, and reports the contiguous viewing half-angle. Refractive index comes from Additional lens settings; state count comes from Step 2.
 3. **Optimize this section** searches the original 50 × 50 grid. It reports the unconstrained source optimum separately from a candidate fitting the web assembly's air gap, 0.18 mm mask and minimum 0.4 mm substrate. The first optimum can have h = 0; that cannot be applied to this separated-layer assembly.
 4. **Apply fitted lens profile** generates the circular profile with that radius and height. The reference section uses the fitted r, p and h; other sections retain r/p as pitch varies. Substrate height stays constant. Rails, openings, native mechanism mounts and sampled collisions regenerate. Invalid assemblies cannot be exported. The source grid may offer a worse nominal half-angle than an existing semicircular profile: applying it is optional, and the panel says when this occurs.
-5. Download an optical report with parameters, full curves, source identities, assumptions and any search/benchmark results. The complete image/geometry export also includes an evaluation of its current center section in `verification.json`.
+5. Download an optical report with parameters, full curves, source identities, assumptions and any search/benchmark results. The complete image/geometry export also includes an evaluation of its current center section and the applied automatic search result in `verification.json`. Reports identify the exact profile version and grid.
 
-Original door-sign CAD stays intact until a profile is applied or its source dimensions are edited. Applying a profile preserves its 20-cell layout while switching to generated lens/rail solids. Undo restores the original design. Profile parameters are saved in project JSON.
+**Optimize lenses before simulation and export** is enabled by default in Step 3. Start or Export first searches the center section, applies a candidate that fits the gap and substrate, rebuilds the entire assembly and checks rigid intersections, then performs the requested action. Changing state count, curve, search version, threshold, pitch, gap or IOR invalidates the cached result. Images, crops and mechanism position do not change the optical search. This is a center-section fit, not a joint optimum over the entire varying-pitch surface. A failed fit blocks the action with an explanation.
+
+Turn this option off to retain a manual profile or the original CAD. Original door-sign CAD stays intact until a profile is applied or its source dimensions are edited. Applying a profile preserves its 20-cell layout while switching to generated lens/rail solids. Undo restores the original design. Profile parameters are saved in project JSON.
 
 ## Mathematical definitions and source fidelity
 
@@ -24,7 +26,7 @@ The authoritative tracer is `2_optimization/optimize_lens.py::phi_curve`, also c
 - φ = weighted central-strip hits / weighted hits within the lens footprint. The central strip width is p/N. Escaped rays are excluded from the denominator. **φ is a conditional hit fraction, not absolute brightness or transmission.**
 - θ is the last angle in the contiguous interval from 0° satisfying φ ≥ φ_min. A failed normal view is explicitly reported as “Below minimum,” even though the original θ function returns 0 in that case.
 - Linear grids r ∈ [p/2 + 0.01 mm, 15p] and h ∈ [0, 2p], 50 samples each. Some old docstrings say “log-spaced”; executable code uses linear spacing.
-- Search angles 0–89° in 1° steps. Ties retain the first strict maximum, traversing r first, h second. The worker may stop a candidate at its first failed angle, which preserves the contiguous-interval objective. Full curves are then recomputed for chosen candidates.
+- Search angles 0–89° inclusive, in 0.5° steps by default (a deliberate recomputation), or 1° steps for the supplied source version. Ties retain the first strict maximum, traversing r first, h second. The worker may stop a candidate at its first failed angle, which preserves the contiguous-interval objective. Full curves are then recomputed for chosen candidates.
 
 Current generated sections use the actual chord pitch at the selected curve position. Existing exact semicircles are evaluated at r = p/2 + 10⁻¹⁰ mm to satisfy the source's strict radius inequality; their zero-angle endpoint normals are singular in the exact limit. Original CAD is explicitly labeled a **nominal circular-section estimate**, not an exact optical tracing of the triangulated CAD.
 
@@ -42,6 +44,7 @@ The editor additionally reports an approximate array-row visibility at the selec
 
 ```sh
 python scripts/generate-optics-reference.py
+python scripts/generate-optics-versions.py --output /tmp/optics-versions.json
 pnpm test
 ```
 
@@ -50,3 +53,7 @@ The old `3_verification/lens_table.csv` reports φ(0) = 1 for every state count.
 The supplied `3_verification` renderer uses Mitsuba path tracing. It is computational verification, **not a physical measurement dataset**. Its image outputs are not evidence that newly generated web parts have been fabricated or calibrated.
 
 The source evaluation omits the glass-to-air exit interface, opaque aperture mask, Fresnel loss, scattering, finite pupils, printer response and manufacturing tolerance. The web assembly contains a separated image plane and mask; fitting h does not remove this model mismatch. This panel reproduces the supplied optical optimization model, while image animation remains the labeled idealized preview. The optional two-interface viewport shader is a separate experimental model. Physical validation of web-generated outputs is still pending.
+
+## Paper figure versions
+
+The default `recomputed-halfdeg-v1` uses a 0.5° search with the §5.2 contiguous-threshold definition. `source-1deg-v1` retains the supplied corrected scripts. All nine state counts are independently regenerated in `tests/fixtures/optics-versions.json`; the JavaScript parity test compares both versions. The 0.5° heights reproduce Fig. 8c at its printed precision, but the published θ labels do not match the effective-angle definition under either version. They remain verbatim historical evidence, not validation targets. Fig. 8b and 8c appear to mix selections. See [the provenance investigation and new table](paper-data-versions.md).

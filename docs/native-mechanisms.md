@@ -17,7 +17,7 @@ The web tool uses the original CAD moving parts. It generates the carrier pocket
 - The knob rack is 1 mm too far from the pinion. Its original profile moves -1 mm in local X, plus 0.06 mm backlash: net -0.94 mm. The clean native pi-period cell is repeated; the two nonuniform seams in the baked source rack are not repeated.
 - Tooth shapes, moving handle shapes and gear diameters are not rescaled. The knob flange/cap may be raised above the generated lens; the original cylindrical shaft is lengthened axially to connect them. `capLift` is included in the export verification.
 - The switch keeps its measured 3.942467388557 mm pin spacing and 0.708105600927 mm straight slot length. Excessive stroke is rejected rather than stretching the original rocker. Its vertical mounting height adapts to carrier thickness.
-- The source knob opposite wall has no identifiable detent or spring. Knob and roller operate continuously; selecting image states does not claim physical snap positions.
+- The source knob opposite wall has no identifiable detent or spring. Smooth knob and roller motion are continuous. The optional generated indexing wall is documented below; the source CAD itself has no detents.
 
 ## Shared motion
 
@@ -27,12 +27,14 @@ Switch has 2 image states; knob supports 2–5, roller 2–10. The encoder and i
 
 The worker checks solid intersections through the stroke. The volume tolerance is 0.02 mm³. Invalid placements remain editable and export is disabled when fitting or collision checks fail. These checks do not replace fabrication and optical calibration.
 
-`native-mechanisms.mjs` is generated from audited tessellations with original object IDs. To reproduce it using only the included inputs and Python's standard library:
+`native-mechanisms.mjs` is generated from audited tessellations with original object IDs. Run `scripts/prepare-native-cad.py --audit .../native-mechanisms.json --racks .../native-rack-profiles.json` to reproduce it. The audit inputs were obtained by reading and tessellating the source CAD without opening or modifying the user's Rhino document.
 
-```sh
-python3 scripts/prepare-native-cad.py \
-  --audit docs/cad/native-meshes.json \
-  --racks docs/cad/native-rack-profiles.json
-```
+## Optional generated indexing wall
 
-This normalization step needs neither Rhino nor Grasshopper. The audit inputs were obtained by reading and tessellating the source CAD without opening or modifying the user's Rhino document.
+**Knob motion → Indexed wall (experimental)** adds a new web-generated compliant opposite wall; it is not a recovered source-CAD part. Smooth motion remains the default and preserves existing saved designs.
+
+The generator uses the original pinion (object 75), its section at Z = 0, and the exact transported pinion poses at phase `i/(N-1)` to cut seats with 0.06 mm clearance. A nominal 0.69 mm minimum web and 0.6 mm back relief leave a flexible wall attached to the carrier at both ends. The original pinion, handle and driving rack remain intact. Releasing a dragged knob selects the nearest optical state in the interface; the timeline can still inspect continuous travel.
+
+The closed exported carrier includes the wall and its end connections. Tests check seats at 2–5 states, intended pinion contact between adjacent states, connected positive-volume carrier geometry, and rigid-part clearance on all three surface families. Some kernels also produce a near-zero-volume shell on the screw example (about 5e-11 mm³); connectivity checks ignore such numerical debris, not substantial disconnected components.
+
+`checks.intendedElasticContacts` records pinion/wall intersection volumes at sampled phases separately from rigid collisions. The wall is displayed undeformed: elastic deflection, stiffness, holding force, fatigue, and additional equilibrium positions are **not solved**. It is an experimental generated mechanism, not proof of stable physical indexing or an exact reconstruction of the paper's spring. Never report these intended compliant contacts as zero total intersections.
