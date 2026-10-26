@@ -15,30 +15,41 @@ Laptop uploads always work independently of phone pairing. No printer make or st
 
 ## Hardware and encoding
 
-The shipped asset is the saved Rhino render mesh from `ShiftLens_keychain_v03_fit_and_masks.3dm`, SHA-256 `62a853c5190bd726c9f4239996836cb381c39ae7063f92fc106e416e3ef523fd`. It includes all 30 hardware material regions: clear lenses, frame/rails, nine black masks, carrier, and 18 underside lettering regions. The original paper placeholder is replaced with the encoded image plane. No switch, knob, or roller is used. No CAD installation is required at runtime.
+The shipped asset is the saved Rhino render mesh from `ShiftLens_keychain_v04.3dm`, SHA-256 `16e61298f58ce291148a12c9071e3da751d1115faf515740b335eadaccc23295`. It includes all 30 hardware material regions: clear lenses, frame/rails, nine black masks, carrier, and 18 underside lettering regions. The original paper placeholder is replaced with the encoded image plane. No switch, knob, or roller is used. No CAD installation is required at runtime.
 
-| Property | Fixed v03 value |
+| Property | Fixed v04 value |
 | --- | --- |
-| Overall envelope | 40 × 30 × 7 mm |
+| Overall envelope | 40 × 30 × 5.4 mm |
 | Lens window | 24 × 20 mm, eight 3 mm lenses |
-| Lens radius / total profile height | 1.5 mm / 3 mm |
+| Lens radius / total profile height | 1.5 mm / 2.1 mm |
 | Clear center per lens | 1.5 mm (50% total black masking) |
 | Carrier | 36 × 24 × 2 mm |
 | Slide travel | 1.5 mm |
 | Sticker | 26.5 × 21.2 mm |
 | Recess | 27.5 × 22.2 mm, 0.75 mm deep |
 | Nominal sticker + adhesive thickness | 0.75 mm |
-| Nominal image-to-lens gap | 0.5 mm |
+| Clear substrate below hemisphere | 0.6 mm (0.2 × pitch) |
+| Nominal image-to-lens air gap | 0.15 mm |
+| Vertical guide clearance per side | 0.15 mm |
+| Lateral guide clearance per side | 0.5 mm |
 
 The saved CAD places the carrier at its left stop, already offset -0.75 mm. The extraction script normalizes moving parts by +0.75 mm, retaining that transform in each part's provenance. The viewer then applies -0.75 to +0.75 mm to both the carrier and sticker; the lens/frame stay fixed. Geometry is not resized.
 
-`src/demo/keychain.mjs` maps sticker coordinates in millimeters to the original region-compression image scheme, including the sticker margins. Image 1 occupies the right half of each carrier period; image 2 occupies the left. A single encoded canvas supplies the lens appearance, carrier texture, PDF, and PNG. The physical glass material and aperture-edge treatment are reused from the design tool. This is an idealized sliding-image preview, not a calibrated prediction of the fabricated lens or printer. The demo deliberately does not optimize or alter the fixed hardware.
+`src/demo/keychain.mjs` maps sticker coordinates in millimeters to the original region-compression image scheme, including the sticker margins. Image 1 occupies the right half of each carrier period; image 2 occupies the left. A single encoded canvas supplies the lens appearance, carrier texture, PDF, and PNG. The glass material is reused from the design tool. The demo now traces through the curved entry surface, both faces of the finite-thickness mask, and the glass-to-air exit to the actual printed-image plane. It samples the same encoded canvas at that hit point; it does not stretch a whole image strip over each lens by assumption. This is a nominal geometric simulation, not a measured resin/printer calibration. The full design tool retains its existing preview modes. The demo does not optimize or alter the fixed hardware.
+
+### Why v04
+
+Paper §§3.1 and 5.3 specify interleaved image strips of width **p/N**; two states therefore remain **50% + 50%**, with 1.5 mm travel. The requested **approximately 40%** describes the normal-incidence *refracted footprint*, not a new 40% encoding ratio. The paper does not prescribe a universal 40% footprint. Its Fig. 7/§5.1 defines h from the lens feet to the pattern plane in the homogeneous optical model; this separated paper insert additionally has an air interface.
+
+v03 had a 1.5 mm substrate and a 0.5 mm gap. v04 preserves the source semicircular radius of 1.5 mm, removes 0.9 mm of flat substrate, and uses a 0.15 mm nominal air gap. At the source CAD IOR of **1.4**, tracing through the actual 0.3 mm mask channel gives a normal-view footprint **1.19817 mm wide, or 39.939% of the 3 mm pitch**. This is an independent Python calculation, not a claimed measurement or a value quoted from the paper. IOR 1.4 comes from the source CAD material; the paper evaluation code uses 1.52. The result depends on the material IOR. Vertical guide play allows a gap of 0–0.30 mm (about 44.2–35.7% footprint); the 0.15 mm nominal position is not a mechanical detent.
+
+The carrier, recess, sticker thickness, keyring geometry, and underside letters retain their shapes. Vertical rails are reduced to 0.15 mm clearance per side; side clearances remain 0.5 mm. Saved-solid checks confirm the dimensions, closed volumes and collision-free nominal travel. [CAD and optical checks](keychain-v04-validation.json) include provenance and the independent footprint calculation. The physical assembly is thinner: 40 × 30 × 5.4 mm. Printing tolerances and finish remain material/process dependent.
 
 Refresh the asset only when the fabricated model changes:
 
 ```sh
 python -m pip install rhino3dm==8.35.0
-python scripts/prepare-keychain.py /path/to/ShiftLens_keychain_v03_fit_and_masks.3dm
+python scripts/prepare-keychain.py /path/to/ShiftLens_keychain_v04.3dm
 ```
 
 The script reads saved render meshes; it does not run Rhino or regenerate CAD. A different model requires updating the fixed profile, source hash, and dimension/registration tests together.

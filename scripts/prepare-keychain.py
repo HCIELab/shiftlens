@@ -1,6 +1,6 @@
-"""Extract the v03 keychain's SAVED render meshes. No CAD regeneration/rescaling.
+"""Extract the v04 keychain's SAVED render meshes. No CAD regeneration/rescaling.
 Requires rhino3dm 8.35.0 only when refreshing this asset; no Rhino runtime.
-Usage: python scripts/prepare-keychain.py /path/to/ShiftLens_keychain_v03_fit_and_masks.3dm
+Usage: python scripts/prepare-keychain.py /path/to/ShiftLens_keychain_v04_fit_and_masks.3dm
 """
 import hashlib, json, sys
 from pathlib import Path
@@ -27,6 +27,6 @@ for o in model.Objects:
             if c!=d: indices.extend([offset+a,offset+c,offset+d])
     parts.append(dict(name=name,sourceId=str(o.Attributes.Id),normalizationX=dx,positions=positions,indices=indices))
 data=dict(source=source.name,sourceSha256=hashlib.sha256(source.read_bytes()).hexdigest(),units='mm',parts=parts)
-out=Path(__file__).resolve().parents[1]/'src/assets/keychain-v03.json'
+out=Path(__file__).resolve().parents[1]/'src/assets/keychain-v04.json'
 out.write_text(json.dumps(data,separators=(',',':'))+'\n')
 print(json.dumps(dict(source=data['source'],sha256=data['sourceSha256'],parts=len(parts),vertices=sum(len(p['positions'])//3 for p in parts),bytes=out.stat().st_size)))

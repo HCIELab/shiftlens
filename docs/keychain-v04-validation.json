@@ -1,0 +1,366 @@
+{
+  "geometry": {
+    "model": "ShiftLens_keychain_v04.3dm",
+    "units": "Millimeters",
+    "closed_valid_solid_count": 31,
+    "measured_gaps_mm": {
+      "left_wall": 0.5,
+      "right_wall": 0.5,
+      "lower_retaining_lip": 0.1499999999999999,
+      "upper_guide": 0.1499999999999999,
+      "image_to_lens": 0.1499999999999999,
+      "sticker_pocket_left": 0.4999999933772621,
+      "sticker_pocket_right": 0.5000000066227379,
+      "sticker_pocket_bottom": 0.5,
+      "sticker_pocket_top": 0.5
+    },
+    "sticker_thickness_mm": 0.75,
+    "recess_depth_mm": 0.7500000953674317,
+    "lower_lip_thickness_mm": 1.0,
+    "lens_cylinder_radii_mm": [
+      1.5,
+      1.5,
+      1.5,
+      1.5,
+      1.5,
+      1.5000000000000002,
+      1.5,
+      1.5
+    ],
+    "material_sample_counts": {
+      "black": 400,
+      "clear": 400,
+      "overlap": 0,
+      "void": 0
+    },
+    "black_fraction": 0.5,
+    "substrate_mm": 0.6000000476837153,
+    "lens_feet_z": [
+      3.8999999999999995,
+      3.8999999999999995,
+      3.900000000000001,
+      3.9000000000000004,
+      3.9000000000000004,
+      3.900000000000001,
+      3.9,
+      3.8999999999999995
+    ],
+    "nominal_motion_checks": [
+      {
+        "part": "carrier",
+        "shift_from_first_state": 0.0,
+        "overlap_mm3": 0.0
+      },
+      {
+        "part": "sticker",
+        "shift_from_first_state": 0.0,
+        "overlap_mm3": 0.0
+      },
+      {
+        "part": "carrier",
+        "shift_from_first_state": 0.75,
+        "overlap_mm3": 0.0
+      },
+      {
+        "part": "sticker",
+        "shift_from_first_state": 0.75,
+        "overlap_mm3": 0.0
+      },
+      {
+        "part": "carrier",
+        "shift_from_first_state": 1.5,
+        "overlap_mm3": 0.0
+      },
+      {
+        "part": "sticker",
+        "shift_from_first_state": 1.5,
+        "overlap_mm3": 0.0
+      }
+    ]
+  },
+  "optics": {
+    "model": "Snell air-to-glass and glass-to-air; both mask faces; normal incidence footprint",
+    "paperReference": "2026-shiftlens-paper.pdf sections 3.1, 5.1, 5.3: strips p/N; h is lens-feet to pattern layer. 40% is a user target, not a paper-specified encoding fraction.",
+    "parameters": {
+      "version": "v04",
+      "pitch": 3.0,
+      "radius": 1.5,
+      "substrate": 0.6,
+      "ior": 1.4,
+      "lensBottom": 3.3,
+      "lensFeet": 3.9,
+      "lensTop": 5.4,
+      "paperZ": 3.15,
+      "imageGap": 0.15,
+      "guideGap": 0.15,
+      "maskThickness": 0.3,
+      "maskCoverage": 0.5,
+      "travel": 1.5,
+      "carrierBottom": 1.15,
+      "carrierTop": 3.15,
+      "paperWidth": 26.5,
+      "paperHeight": 21.2,
+      "paperThickness": 0.75,
+      "outerWidth": 40.0,
+      "outerHeight": 30.0,
+      "sourceSha256": "62a853c5190bd726c9f4239996836cb381c39ae7063f92fc106e416e3ef523fd",
+      "cadSha256": "16e61298f58ce291148a12c9071e3da751d1115faf515740b335eadaccc23295"
+    },
+    "normal": {
+      "gapMm": 0.15,
+      "angleDegrees": 0,
+      "minMm": -0.5990869200036986,
+      "maxMm": 0.5990869200036986,
+      "widthMm": 1.1981738400073971,
+      "fractionOfPitch": 0.3993912800024657,
+      "unblockedRays": 150069
+    },
+    "guidePlay": [
+      {
+        "gapMm": 0,
+        "angleDegrees": 0,
+        "minMm": -0.6627794878840731,
+        "maxMm": 0.6627794878840731,
+        "widthMm": 1.3255589757681463,
+        "fractionOfPitch": 0.44185299192271543,
+        "unblockedRays": 150069
+      },
+      {
+        "gapMm": 0.3,
+        "angleDegrees": 0,
+        "minMm": -0.5353943521233241,
+        "maxMm": 0.5353943521233241,
+        "widthMm": 1.0707887042466482,
+        "fractionOfPitch": 0.35692956808221604,
+        "unblockedRays": 150069
+      }
+    ],
+    "oblique": [
+      {
+        "gapMm": 0.15,
+        "angleDegrees": 10,
+        "minMm": -0.4836195207991339,
+        "maxMm": 0.7035891158192097,
+        "widthMm": 1.1872086366183436,
+        "fractionOfPitch": 0.39573621220611455,
+        "unblockedRays": 144618
+      },
+      {
+        "gapMm": 0.15,
+        "angleDegrees": 20,
+        "minMm": -0.3255917979043182,
+        "maxMm": 0.7803497632654348,
+        "widthMm": 1.105941561169753,
+        "fractionOfPitch": 0.36864718705658434,
+        "unblockedRays": 122762
+      }
+    ],
+    "limitations": [
+      "Nominal geometry and source CAD IOR 1.4; not a measured resin/printer calibration.",
+      "Mask absorption modeled as binary; no scattering, dispersion or Fresnel intensity."
+    ]
+  },
+  "print": {
+    "parts": [
+      {
+        "name": "TOP_CLEAR",
+        "triangles": 83644,
+        "closed": true,
+        "volumeMm3": 781.2581533195099
+      },
+      {
+        "name": "TOP_FRAME_AND_RAILS",
+        "triangles": 6052,
+        "closed": true,
+        "volumeMm3": 1301.1018051013943
+      },
+      {
+        "name": "BOTTOM_IMAGE_CARRIER",
+        "triangles": 19458,
+        "closed": true,
+        "volumeMm3": 1232.4834663780168
+      },
+      {
+        "name": "TOP_BLACK_BLOCKERS_01",
+        "triangles": 12,
+        "closed": true,
+        "volumeMm3": 4.499999284744263
+      },
+      {
+        "name": "TOP_BLACK_BLOCKERS_02",
+        "triangles": 20,
+        "closed": true,
+        "volumeMm3": 8.999998569488525
+      },
+      {
+        "name": "TOP_BLACK_BLOCKERS_03",
+        "triangles": 20,
+        "closed": true,
+        "volumeMm3": 8.999998569488525
+      },
+      {
+        "name": "TOP_BLACK_BLOCKERS_04",
+        "triangles": 20,
+        "closed": true,
+        "volumeMm3": 8.999998927116339
+      },
+      {
+        "name": "TOP_BLACK_BLOCKERS_05",
+        "triangles": 20,
+        "closed": true,
+        "volumeMm3": 8.999998569488525
+      },
+      {
+        "name": "TOP_BLACK_BLOCKERS_06",
+        "triangles": 20,
+        "closed": true,
+        "volumeMm3": 8.999998569488525
+      },
+      {
+        "name": "TOP_BLACK_BLOCKERS_07",
+        "triangles": 20,
+        "closed": true,
+        "volumeMm3": 8.999998569488525
+      },
+      {
+        "name": "TOP_BLACK_BLOCKERS_08",
+        "triangles": 20,
+        "closed": true,
+        "volumeMm3": 8.999998569488525
+      },
+      {
+        "name": "TOP_BLACK_BLOCKERS_09",
+        "triangles": 12,
+        "closed": true,
+        "volumeMm3": 4.499999284744263
+      },
+      {
+        "name": "BRAND_SHIFTLENS_01",
+        "triangles": 1558,
+        "closed": true,
+        "volumeMm3": 1.1984545161173257
+      },
+      {
+        "name": "BRAND_SHIFTLENS_02",
+        "triangles": 516,
+        "closed": true,
+        "volumeMm3": 0.8803371789800112
+      },
+      {
+        "name": "BRAND_SHIFTLENS_03",
+        "triangles": 12,
+        "closed": true,
+        "volumeMm3": 0.06232849447150334
+      },
+      {
+        "name": "BRAND_SHIFTLENS_04",
+        "triangles": 12,
+        "closed": true,
+        "volumeMm3": 0.3197721012239945
+      },
+      {
+        "name": "BRAND_SHIFTLENS_05",
+        "triangles": 322,
+        "closed": true,
+        "volumeMm3": 0.5880025756100626
+      },
+      {
+        "name": "BRAND_SHIFTLENS_06",
+        "triangles": 298,
+        "closed": true,
+        "volumeMm3": 0.5310615068794308
+      },
+      {
+        "name": "BRAND_SHIFTLENS_07",
+        "triangles": 20,
+        "closed": true,
+        "volumeMm3": 0.6846916327574831
+      },
+      {
+        "name": "BRAND_SHIFTLENS_08",
+        "triangles": 1368,
+        "closed": true,
+        "volumeMm3": 0.9086073306031017
+      },
+      {
+        "name": "BRAND_SHIFTLENS_09",
+        "triangles": 586,
+        "closed": true,
+        "volumeMm3": 0.7550865758113453
+      },
+      {
+        "name": "BRAND_SHIFTLENS_10",
+        "triangles": 1500,
+        "closed": true,
+        "volumeMm3": 0.7846528990626799
+      },
+      {
+        "name": "BRAND_UIST_11",
+        "triangles": 630,
+        "closed": true,
+        "volumeMm3": 0.4822268337173874
+      },
+      {
+        "name": "BRAND_UIST_12",
+        "triangles": 12,
+        "closed": true,
+        "volumeMm3": 0.21144330131600061
+      },
+      {
+        "name": "BRAND_UIST_13",
+        "triangles": 1548,
+        "closed": true,
+        "volumeMm3": 0.5326365723897117
+      },
+      {
+        "name": "BRAND_UIST_14",
+        "triangles": 28,
+        "closed": true,
+        "volumeMm3": 0.3359468861724542
+      },
+      {
+        "name": "BRAND_2026_15",
+        "triangles": 972,
+        "closed": true,
+        "volumeMm3": 0.4188169901293712
+      },
+      {
+        "name": "BRAND_2026_16",
+        "triangles": 1302,
+        "closed": true,
+        "volumeMm3": 0.44498365742445906
+      },
+      {
+        "name": "BRAND_2026_17",
+        "triangles": 964,
+        "closed": true,
+        "volumeMm3": 0.4187606179728762
+      },
+      {
+        "name": "BRAND_2026_18",
+        "triangles": 1626,
+        "closed": true,
+        "volumeMm3": 0.4882543790072545
+      }
+    ],
+    "physicalPieces": 2,
+    "units": "mm",
+    "savedPrint3dmReopened": {
+      "closedSolidCount": 30,
+      "carrierBoundsMm": [
+        [
+          31.25,
+          67.25
+        ],
+        [
+          -12,
+          12
+        ],
+        [
+          0,
+          2
+        ]
+      ]
+    }
+  }
+}
