@@ -40,7 +40,7 @@ pnpm preview
 
 Use the **Demo** button in the main toolbar, or open the [keychain demo](https://hcielab.github.io/shiftlens/demo/). This separate page uses the fixed v03 CAD keychain: two photos, no actuator or shape controls, a 1.5 mm sliding preview, and a **26.5 × 21.2 mm** print insert. Visitors can scan the laptop’s QR code to choose photos on their phone, or upload directly on the laptop. **Next visitor** clears the session.
 
-The PDF preserves the exact sticker size; print at **Actual size / 100%**, not fit-to-page. A PNG with physical-size metadata is also available. See the [demo setup guide](docs/demo.md) for assembly orientation, printer handling, phone-transfer network requirements, source CAD provenance, and verification.
+**Download PNG** is the main action and includes physical-size metadata for the sticker. The secondary **Exact-size PDF** preserves the same size; print at **Actual size / 100%**, not fit-to-page. See the [demo setup guide](docs/demo.md) for assembly orientation, printer handling, phone-transfer network requirements, source CAD provenance, and verification.
 
 ## Design workflow
 
