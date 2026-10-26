@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="Make a two-image ShiftLens keychain at the UIST demo."><meta name="referrer" content="no-referrer"><title>Make your keychain · ShiftLens</title></head>
+<body>
+<header class="demo-header"><a class="brand" href="../">ShiftLens<span>UIST 2026</span></a><nav><a href="../">Design tool ↗</a><button id="next-visitor" class="quiet">Next visitor</button></nav></header>
+<main class="demo-layout">
+  <section class="setup"><div class="intro"><span class="eyebrow">UIST DEMO</span><h1>Make your keychain.</h1><p>Add two photos, preview the slide,<br class="wide-only"> and print your insert.</p></div>
+    <section aria-labelledby="photos-heading"><h2 id="photos-heading"><span class="step">1</span> Choose two photos</h2>
+      <div class="phone-pair"><a id="upload-link" aria-label="Open phone upload page"><canvas id="qr" width="112" height="112" aria-label="Scan to upload photos from your phone" hidden></canvas></a><div><strong>Use your phone</strong><p id="pair-status" role="status">Connecting…</p><button id="new-qr" class="text-button">New QR code</button> <button id="copy-link" class="text-button" disabled>Copy link</button></div></div>
+      <p class="or-label">or choose photos on this laptop</p><div id="photos" class="photos"></div><p id="photo-error" class="error" role="alert"></p><p class="small muted">The previews show your crop. Photos stay in this session and clear for the next visitor.</p>
+    </section>
+    <section class="print-section" aria-labelledby="print-heading"><h2 id="print-heading"><span class="step">3</span> Print &amp; slide</h2><button id="download" class="primary download" disabled>Download print file <span>↓</span></button><div class="print-meta"><span>26.5 × 21.2 mm · Exact-size PDF</span><button id="download-png" class="text-button" disabled>Encoded PNG</button></div><p class="small muted">Print at <strong>100% / Actual size</strong>, with “Fit to page” off. Cut to the page edge and center the insert in the carrier recess. Image 1 appears at the closed-end stop.</p><p id="download-status" class="small" role="status"></p></section>
+  </section>
+  <section class="preview" aria-label="Keychain simulation"><div class="preview-heading"><h2><span class="step">2</span> Try the slide</h2><button id="reset-view" class="quiet">Reset view</button></div><div id="viewer"><div id="canvas-host"></div><span class="model-tag">KEYCHAIN v03 <span>40 × 30 mm</span></span><div class="view-hint">Drag the keychain to slide · Right-drag to orbit · Scroll to zoom</div><div id="model-error" role="alert" hidden></div></div>
+    <div class="simulation"><div class="simulation-top"><button id="play" class="play" aria-label="Start sliding animation">▶ Play</button><span id="phase-label">Image 1</span><span class="travel">1.5 mm travel</span></div><div class="timeline"><button id="state-1" aria-label="Show image 1">1</button><input id="slide" type="range" min="0" max="1" step="0.001" value="0" aria-label="Slide the keychain"><button id="state-2" aria-label="Show image 2">2</button></div><p class="preview-note">Preview uses the same encoded image as your print file.</p></div>
+  </section>
+</main><footer>ShiftLens · UIST 2026 <span>Slide to change the image.</span></footer>
+<script type="module" src="../src/demo/main.mjs"></script></body></html>

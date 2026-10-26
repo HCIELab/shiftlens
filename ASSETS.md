@@ -38,3 +38,7 @@ Confirm asset redistribution terms before a public release. The code is licensed
 ## Optical evaluation source
 
 The browser evaluation is ported from the user-supplied `10_Evaluation/2_optimization/optimize_lens.py` and `10_Evaluation/4_curved-surface/compute_opv.py`. Exact extracted NumPy computational definitions are retained in `docs/evaluation/reference_definitions.py` for independent parity checks. Original full-file SHA256 identities are recorded in `tests/fixtures/optics-python.json` and exported reports. The private source folder, plotting scripts, correspondence, rendering caches and rendered images are not runtime dependencies. See [optics](docs/optics.md) for equations, model limits, stale-cache corrections and fixture regeneration.
+
+## Fixed keychain demo
+
+`src/assets/keychain-v03.json` contains 30 saved render-mesh regions from the user-supplied `ShiftLens_keychain_v03_fit_and_masks.3dm`, SHA-256 `62a853c5190bd726c9f4239996836cb381c39ae7063f92fc106e416e3ef523fd`. Original object IDs and moving-part normalization offsets are retained. The sticker placeholder is excluded. `scripts/prepare-keychain.py` reproduces the extraction using rhino3dm 8.35.0, without a Rhino runtime. See [demo geometry and print dimensions](docs/demo.md). This records provenance; it does not assign a new license to the source CAD.

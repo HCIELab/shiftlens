@@ -64,7 +64,7 @@ bool selectedImage(vec3 p,vec3 n,vec3 view,out vec3 color){
 }
 `;
 
-export function makeGlass({imagePreview=false}={}) {
+export function makeGlass({imagePreview=false,selectionGLSL=selection,cacheKey='shiftlens-physical-transmission-v1'}={}) {
   const material=new THREE.MeshPhysicalMaterial({
     color:'#ffffff',metalness:0,roughness:.085,transmission:.9,opacity:1,
     transparent:false,ior:1.5,thickness:2,envMapIntensity:1,
@@ -83,7 +83,7 @@ export function makeGlass({imagePreview=false}={}) {
     // The uniform also appears in the vertex shader for the transformed local
     // surface normal (curves, flipped surfaces and arbitrary motion axes).
     shader.vertexShader='uniform mat4 worldToAssembly;\n'+shader.vertexShader;
-    shader.fragmentShader=selection+shader.fragmentShader;
+    shader.fragmentShader=selectionGLSL+'\n'+shader.fragmentShader;
     const transmission=THREE.ShaderChunk.transmission_fragment.replace(
       'material.transmissionAlpha = mix(',
       `vec3 selected;
@@ -98,6 +98,6 @@ export function makeGlass({imagePreview=false}={}) {
     );
     shader.fragmentShader=shader.fragmentShader.replace('#include <transmission_fragment>',transmission);
   };
-  material.customProgramCacheKey=()=> 'shiftlens-physical-transmission-v1';
+  material.customProgramCacheKey=()=>cacheKey;
   return material;
 }

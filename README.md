@@ -4,7 +4,7 @@
 
 ShiftLens combines a lenticular lens array with an interleaved image layer. Small mechanical shifts between the layers reveal different images, allowing physical objects to change appearance without electronics.
 
-This repository contains the standalone web implementation of the ShiftLens design workflow. It runs locally in a browser: **Rhino, Grasshopper, Python and a backend service are not required.** Geometry generation, mechanism motion, image encoding and exports all run on the user's device.
+This repository contains the standalone web implementation of the ShiftLens design workflow. It runs locally in a browser: **Rhino, Grasshopper, Python and a backend service are not required.** Geometry generation, mechanism motion, image encoding and exports all run on the user's device. The optional demo phone-transfer flow uses a WebRTC signaling service; local uploads do not.
 
 [Paper (PDF)](https://hcie.csail.mit.edu/research/shiftlens/2026-shiftlens-paper.pdf) · [Demo video](https://www.youtube.com/watch?v=KJK-DvgmRNs) · [Project page](https://hcie.csail.mit.edu/research/shiftlens/shiftlens.html)
 
@@ -35,6 +35,12 @@ pnpm preview
 ```
 
 `dist/` contains the static website and can be served at a site's root. No API keys, accounts, CAD installations or private source folders are needed. Keep the page on HTTP(S), including localhost, rather than opening `index.html` with `file://`; the geometry worker and WebAssembly module need a web server.
+
+## UIST keychain demo
+
+Use the **Demo** button in the main toolbar, or open the [keychain demo](https://hcielab.github.io/shiftlens/demo/). This separate page uses the fixed v03 CAD keychain: two photos, no actuator or shape controls, a 1.5 mm sliding preview, and a **26.5 × 21.2 mm** print insert. Visitors can scan the laptop’s QR code to choose photos on their phone, or upload directly on the laptop. **Next visitor** clears the session.
+
+The PDF preserves the exact sticker size; print at **Actual size / 100%**, not fit-to-page. A PNG with physical-size metadata is also available. See the [demo setup guide](docs/demo.md) for assembly orientation, printer handling, phone-transfer network requirements, source CAD provenance, and verification.
 
 ## Design workflow
 
