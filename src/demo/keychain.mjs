@@ -1,6 +1,7 @@
 import {clamp} from '../model.mjs';
-// Measured v04 CAD, millimeters. Keep this profile fixed to the printed hardware.
-export const KEYCHAIN=Object.freeze({version:'v04',width:40,height:30,depth:5.4,count:8,pitch:3,lensMinX:-9,lensWidth:24,lensHeight:20,lensBottom:3.3,lensTop:5.4,radius:1.5,substrate:.6,airGap:.15,maskThickness:.3,ior:1.4,centerX:3,paperWidth:26.5,paperHeight:21.2,paperZ:3.15,travel:1.5,pixelsPerMm:40});
+// Measured v04 hardware, millimeters. The demo insert is 27 × 20 mm;
+// changing its cut size does not scale the lens pitch or the encoded bands.
+export const KEYCHAIN=Object.freeze({version:'v04',width:40,height:30,depth:5.4,count:8,pitch:3,lensMinX:-9,lensWidth:24,lensHeight:20,lensBottom:3.3,lensTop:5.4,radius:1.5,substrate:.6,airGap:.15,maskThickness:.3,ior:1.4,centerX:3,paperWidth:27,paperHeight:20,paperZ:3.15,travel:1.5,pixelsPerMm:40});
 export const carrierOffset=phase=>(clamp(phase,0,1)-.5)*KEYCHAIN.travel;
 // The right half of each carrier period is image 1; sliding the carrier right
 // brings its left half (image 2) under the stationary clear aperture.

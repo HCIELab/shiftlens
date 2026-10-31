@@ -38,7 +38,7 @@ pnpm preview
 
 ## UIST keychain demo
 
-Use the **Demo** button in the main toolbar, or open the [keychain demo](https://hcielab.github.io/shiftlens/demo/). This separate page uses the fixed v04 CAD keychain: two photos, no actuator or shape controls, a 1.5 mm sliding preview, and a **26.5 × 21.2 mm** print insert. Visitors can scan the laptop’s QR code to choose photos on their phone, or upload directly on the laptop. **Next visitor** clears the session.
+Use the **Demo** button in the main toolbar, or open the [keychain demo](https://hcielab.github.io/shiftlens/demo/). This separate page uses the fixed v04 CAD keychain: two photos, no actuator or shape controls, a 1.5 mm sliding preview, and a **27 × 20 mm** print insert. Run it on a phone or laptop. Visitors can scan the host’s QR code to send two photos, or choose photos directly on the host device. Download the image PNG or a **2 × 3 inch sticker sheet** with one image at a 3 mm top-left margin. Supported phones also offer native file sharing to save or send the PNG to a printer app. **Next visitor** clears the session.
 
 **Download PNG** is the main action and includes physical-size metadata for the sticker. The secondary **Exact-size PDF** preserves the same size; print at **Actual size / 100%**, not fit-to-page. See the [demo setup guide](docs/demo.md) for assembly orientation, printer handling, phone-transfer network requirements, source CAD provenance, and verification.
 

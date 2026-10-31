@@ -18,4 +18,4 @@ export class PhotoReceiver{
 }
 export const sha256=async bytes=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),b=>b.toString(16).padStart(2,'0')).join('');
 export function pairingURL(base,peer,token){const u=new URL('upload.html',base);u.hash=new URLSearchParams({peer,token}).toString();return u.href;}
-export function parsePairing(hash){const p=new URLSearchParams(hash.replace(/^#/,'')),peer=p.get('peer'),token=p.get('token');if(!/^sl-[a-f0-9-]{36}$/.test(peer??'')||!/^[a-f0-9-]{36}$/.test(token??''))throw new Error('Scan the QR code on the demo laptop to connect.');return {peer,token};}
+export function parsePairing(hash){const p=new URLSearchParams(hash.replace(/^#/,'')),peer=p.get('peer'),token=p.get('token');if(!/^sl-[a-f0-9-]{36}$/.test(peer??'')||!/^[a-f0-9-]{36}$/.test(token??''))throw new Error('Scan the QR code on the demo device to connect.');return {peer,token};}

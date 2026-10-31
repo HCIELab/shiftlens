@@ -4,14 +4,22 @@ Open **Demo** in the main toolbar, or visit [`/shiftlens/demo/`](https://hcielab
 
 ## At the demo table
 
-1. Open the demo on the laptop. Leave that tab open. Each session shows a fresh QR code that lasts 15 minutes.
+1. Open the demo on the host phone or laptop. Leave that page open and the screen awake. Tap **Show QR code** for a large, scannable code on the host phone. Each session shows a fresh QR code that lasts 15 minutes.
 2. A visitor scans the code with their phone camera. The phone page opens the native photo picker (`accept="image/*"`, without camera-only `capture`). Choose two photos. The thumbnails show the center crop; **Fit entire photo** adds white margins instead of cutting off content.
-3. Tap **Send to the laptop** and wait for **Both photos arrived**. The laptop accepts both together, verifies their checksums, decodes them, and updates the two image slots. It will not accept a second participant into the completed session.
+3. Tap **Send to the demo device** and wait for **Both photos arrived**. The host accepts both together, verifies their checksums, decodes them, and updates the two image slots. It will not accept a second participant into the completed session.
 4. Drag the keychain or scrub the slider; **Play** animates the same 1.5 mm travel. Right-drag or two-finger drag orbits; scroll/pinch zooms.
-5. **Download PNG** is the main download and produces the encoded image with physical-size metadata for **26.5 × 21.2 mm**. Set that size explicitly if your print app ignores PNG density. The secondary **Exact-size PDF** option produces a one-page PDF at the same dimensions; print it at **Actual size / 100%**. Disable page fitting, borderless enlargement, and automatic image fill. Cut to the image boundary. Center the insert in the carrier's **27.5 × 22.2 mm** recess (0.5 mm clearance on all sides), with the image upright when the keyring hole is on the left. Image 1 is at the closed-end stop; sliding the carrier right by 1.5 mm reveals image 2.
+5. **Download PNG** is the main download and produces the encoded image with physical-size metadata for **27 × 20 mm**. Set that size explicitly if your print app ignores PNG density. The secondary **Exact-size PDF** option produces a one-page PDF at the same dimensions; print it at **Actual size / 100%**. Disable page fitting, borderless enlargement, and automatic image fill. Cut to the image boundary. Center the insert in the carrier's **27.5 × 22.2 mm** recess (0.25 mm clearance on the left/right and 1.1 mm above/below), with the image upright when the keyring hole is on the left. Image 1 is at the closed-end stop; sliding the carrier right by 1.5 mm reveals image 2.
 6. **Next visitor** clears both photos, stops animation, and destroys the previous connection. It generates a new session and QR code. **New QR code** only renews the connection and retains the current photos.
 
-Laptop uploads always work independently of phone pairing. No printer make or stock size is assumed. A printer app that forces every photo to fill the paper will change the lens pitch. Use a driver/app that accepts the PDF at actual size. **Download PNG** produces: 1060 × 848 pixels, with a PNG `pHYs` chunk of 40,000 pixels/meter (1016 PPI) in both directions. Some photo apps ignore this metadata, so enter 26.5 × 21.2 mm explicitly or use the PDF. The 3 mm pitch is 120 raster pixels; each state band is 60 pixels.
+Direct uploads from the host phone’s gallery or laptop always work independently of QR pairing. The same `/demo/` page adapts to phone screens: large QR display, touch-size controls, and downloads below the preview. The visitor opens `/demo/upload.html` using the QR; that page sends photos to the host, where simulation and print-file generation run.
+
+**Download PNG** remains the primary image-only export: **1080 × 800 pixels**, 27 × 20 mm. **Download sheet PNG** creates portrait **2 × 3 inch (50.8 × 76.2 mm)** stock, **2032 × 3048 pixels**, with the identical image copied at pixel (120, 120), a **3 mm margin** from the top and left. All other pixels are white. There are no crop marks over the image and no resampling. This margin is blank space around the insert, not extra image bleed. Both PNGs use a `pHYs` density of 40,000 pixels/meter (1016 PPI). The 3 mm lens pitch remains 120 pixels; each image-state band remains 60 pixels.
+
+The image-only **Exact-size PDF** and **Sheet PDF** are secondary options, with the same embedded raster and explicit page dimensions. Print PDFs at **Actual size / 100%**. For sheet PNGs, select 2 × 3 inch stock and preserve the whole sheet without cropping, filters, borderless enlargement, or automatic fill beyond the sheet edge. For the image-only PNG, enter 27 × 20 mm if the app ignores its density. Printer behavior has not been calibrated; check the resulting insert dimensions before a batch.
+
+On browsers supporting file sharing, **Save or share image…** and **Save or share sheet…** open the native share menu with the PNG file. Available save locations and printer apps depend on the phone. Files are prepared before tapping so sharing retains the browser’s required user activation. Download buttons remain available regardless of sharing support. Changing photos invalidates prepared files immediately; **Next visitor** clears them, including any in-progress export. Returning from browser history renews the QR connection without resetting the current photos.
+
+The 27 × 20 mm insert replaces the previous 26.5 × 21.2 mm demo insert. It is centered in the existing recess; the CAD hardware, 24 × 20 mm lens window, optical stack, and 1.5 mm travel are unchanged. The saved CAD’s older paper placeholder is not rendered or printed by the website.
 
 ## Hardware and encoding
 
@@ -25,7 +33,7 @@ The shipped asset is the saved Rhino render mesh from `ShiftLens_keychain_v04.3d
 | Clear center per lens | 1.5 mm (50% total black masking) |
 | Carrier | 36 × 24 × 2 mm |
 | Slide travel | 1.5 mm |
-| Sticker | 26.5 × 21.2 mm |
+| Sticker | 27 × 20 mm |
 | Recess | 27.5 × 22.2 mm, 0.75 mm deep |
 | Nominal sticker + adhesive thickness | 0.75 mm |
 | Clear substrate below hemisphere | 0.6 mm (0.2 × pitch) |
@@ -58,9 +66,9 @@ The script reads saved render meshes; it does not run Rhino or regenerate CAD. A
 
 GitHub Pages hosts static files, so it cannot itself receive a server-side upload. Both pages use PeerJS/WebRTC. The default PeerJS Cloud service on `0.peerjs.com` handles signaling; Google STUN discovers network addresses. Image bytes travel on an encrypted WebRTC data channel. They are not uploaded to GitHub or stored by this app in a database, localStorage, or IndexedDB. Signaling services see connection metadata. A configured TURN relay can carry encrypted traffic when a direct path is unavailable.
 
-The QR URL keeps its random session token in the fragment (not the HTTP query). A separate random peer ID is used for signaling. The laptop requires the matching token before accepting data and permits one active phone. The token is a short-lived bearer link: anyone who scans it can submit to that session. Each transfer is exactly two images, at most 6 MiB each after normalization, in acknowledged 16 KiB chunks. Size, sequence, and SHA-256 checks prevent incomplete pairs from reaching the preview. Decoding and dimension checks run again on receipt. Phone images are oriented, resized, and redrawn to JPEG before transfer, stripping original EXIF metadata. Browsers that cannot decode HEIC show a JPEG/PNG fallback message.
+The QR URL keeps its random session token in the fragment (not the HTTP query). A separate random peer ID is used for signaling. The host requires the matching token before accepting data and permits one active phone. The token is a short-lived bearer link: anyone who scans it can submit to that session. Each transfer is exactly two images, at most 6 MiB each after normalization, in acknowledged 16 KiB chunks. Size, sequence, and SHA-256 checks prevent incomplete pairs from reaching the preview. Decoding and dimension checks run again on receipt. Phone images are oriented, resized, and redrawn to JPEG before transfer, stripping original EXIF metadata. Browsers that cannot decode HEIC show a JPEG/PNG fallback message.
 
-Phones and the laptop need Internet access for signaling. A shared hotspot is a useful venue fallback; test on the actual network. Networks with peer isolation, restrictive firewalls, or symmetric NAT can prevent a direct WebRTC connection. A QR code alone cannot remove that restriction. No TURN service has been provisioned for this repository. A failed connection is shown in the UI, and laptop upload remains available.
+Visitor and host devices need Internet access for signaling. A shared hotspot is a useful venue fallback; test on the actual network. Networks with peer isolation, restrictive firewalls, or symmetric NAT can prevent a direct WebRTC connection. A QR code alone cannot remove that restriction. No TURN service has been provisioned for this repository. A failed connection is shown in the UI, and local upload remains available.
 
 For an operator-managed service, these optional Vite build variables configure PeerJS:
 
@@ -77,4 +85,4 @@ The Vite multi-page build includes the design tool, `demo/index.html`, and `demo
 
 Browser verification also checks the actual two-page transfer, received thumbnails, state switching, animation, and downloads. This does not substitute for testing iOS/Android gallery behavior, the conference network, or the printer chosen for the table.
 
-References: [GitHub Pages hosting](https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages), [PeerJS connections and NAT/TURN](https://peerjs.com/client/faq), [PeerJS API](https://peerjs.com/client/api/peer), [native file inputs](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/input/file).
+References: [GitHub Pages hosting](https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages), [PeerJS connections and NAT/TURN](https://peerjs.com/client/faq), [PeerJS API](https://peerjs.com/client/api/peer), [native file inputs](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/input/file), [native file sharing and user activation](https://developer.mozilla.org/en-US/docs/Web/API/Navigator/share), [file-sharing capability checks](https://developer.mozilla.org/en-US/docs/Web/API/Navigator/canShare).

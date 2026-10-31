@@ -3,7 +3,7 @@ import {PhotoReceiver,sha256,CHUNK_SIZE,SESSION_MS,MAX_PHOTO_BYTES} from './prot
 // Use signaling only. Venue setups may provide their own PeerServer and ICE
 // configuration at build time; no private, permanent TURN credentials in Git.
 function peerOptions(){const result={debug:0,config:{iceServers:[{urls:'stun:stun.l.google.com:19302'}]}};if(import.meta.env.VITE_DEMO_PEER_HOST)Object.assign(result,{host:import.meta.env.VITE_DEMO_PEER_HOST,port:Number(import.meta.env.VITE_DEMO_PEER_PORT||443),path:import.meta.env.VITE_DEMO_PEER_PATH||'/',secure:true});if(import.meta.env.VITE_DEMO_ICE_SERVERS)result.config.iceServers=JSON.parse(import.meta.env.VITE_DEMO_ICE_SERVERS);return result;}
-const problem=()=> 'Phone connection unavailable. Try the same Wi-Fi or a hotspot, or choose photos on the laptop.';
+const problem=()=> 'Phone connection unavailable. Try the same Wi-Fi or a hotspot, or choose photos on the demo device.';
 export function receivePhotos({onReady,onStatus,onPair,onComplete}){
   const peer=new Peer('sl-'+crypto.randomUUID(),peerOptions()),token=crypto.randomUUID(),connections=new Set();let active=null,closed=false,accepted=false;
   const expiry=setTimeout(()=>{onStatus('QR code expired. Choose “New QR code” to reconnect.');close();},SESSION_MS);
@@ -40,14 +40,14 @@ export function sendPhotos({peer:host,token,onStatus}){
     conn=peer.connect(host,{reliable:true,serialization:'binary'});
     conn.on('open',()=>conn.send({type:'hello',token}));
     conn.on('data',m=>{
-      if(m?.type==='ready'){ready=true;clearTimeout(timeout);onStatus('Connected to the demo laptop.',true);}
+      if(m?.type==='ready'){ready=true;clearTimeout(timeout);onStatus('Connected to the demo device.',true);}
       else if(m?.type==='error'){reject(new Error(m.message));onStatus(m.message,false);ready=false;}
       else if(waiter&&waiter.match(m)){clearTimeout(waiter.timer);waiter.resolve(m);waiter=null;}
     });
     conn.on('close',()=>{ready=false;reject(new Error('Connection closed. Scan the QR code again.'));if(!closed)onStatus('Connection closed. Scan the QR code again.',false);});
     conn.on('error',()=>{ready=false;reject(new Error(problem()));onStatus(problem(),false);});
   });
-  const request=(message,match)=>new Promise((resolve,rejectPromise)=>{if(!ready||!conn?.open)return rejectPromise(new Error('Reconnect to the laptop before sending.'));const timer=setTimeout(()=>{waiter=null;rejectPromise(new Error('Transfer timed out. Retry or use the laptop upload.'));},30000);waiter={resolve,reject:rejectPromise,match,timer};conn.send(message);});
+  const request=(message,match)=>new Promise((resolve,rejectPromise)=>{if(!ready||!conn?.open)return rejectPromise(new Error('Reconnect to the demo device before sending.'));const timer=setTimeout(()=>{waiter=null;rejectPromise(new Error('Transfer timed out. Retry or use the demo device upload.'));},30000);waiter={resolve,reject:rejectPromise,match,timer};conn.send(message);});
   return {async send(buffers,onProgress){
     if(buffers.length!==2||buffers.some(b=>b.length>MAX_PHOTO_BYTES))throw new Error('Choose two smaller photos.');
     const id=crypto.randomUUID(),hashes=await Promise.all(buffers.map(sha256)),total=buffers.reduce((n,b)=>n+b.length,0);let done=0;
