@@ -26,7 +26,7 @@ bool selectedImage(vec3 p,vec3 n,vec3 view,out vec3 color){
   if(exiting.z>=-.0001||length(exiting)<.001)return true;
   vec3 hit=bottom+exiting*((${K.paperZ}-bottom.z)/exiting.z);
   float x=hit.x-(phase-.5)*${K.travel};
-  vec2 uv=vec2((x-(${K.centerX-K.paperWidth/2}))/${K.paperWidth},(hit.y+${K.paperHeight/2})/${K.paperHeight});
+  vec2 uv=vec2((x-(${(K.centerX-K.paperWidth/2).toFixed(6)}))/${K.paperWidth.toFixed(6)},(hit.y+${(K.paperHeight/2).toFixed(6)})/${K.paperHeight.toFixed(6)});
   if(uv.x<0.||uv.x>1.||uv.y<0.||uv.y>1.)return true;
   color=mix(color,texture2D(encoded,uv).rgb,visible);
   return true;
